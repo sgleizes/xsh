@@ -1,0 +1,11 @@
+#
+# This file is sourced by `bash` non-login interactive shells.
+# It is read after /etc/bash.bashrc.
+#
+
+# Source xsh or error out explicitly.
+source "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh" ||
+  return 1
+
+xsh runcom env
+xsh runcom interactive

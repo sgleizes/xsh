@@ -1,0 +1,34 @@
+#
+# This file is sourced by `dash`, `ash` and more generally by `sh` interactive
+# shells, regardless of the underlying implementation.
+#
+# When `sh` is emulated by `bash`, it is read:
+# 1. As the only startup file for *all* shells in strict POSIX mode.
+# 2. As the only startup file for non-login interactive shells.
+# 3. After ~/.profile for login interactive shells.
+# For other shells, only the cases 2 and 3 apply.
+#
+
+# If `bash` is started with the --posix option (case 1), it will read only this
+# file even if the shell is a login shell. It is assumed that users doing that
+# want a bare POSIX shell, so we merely return in this case.
+# To source a specific startup file, use `ENV=/etc/profile sh --posix`.
+if [ "${POSIXLY_CORRECT+x}" ]; then
+  return 1
+fi
+
+# Non-login interactive shells will only source the file specified in the ENV
+# parameter (case 2), which is this file by default when using xsh.
+# To detect if this shell is a login shell we check for the prefix '-' in the
+# program name. This fails to detect shell-specific ways of invoking a login
+# shell (e.g. using `-l`), so a bash-specific check is also included.
+if [ "$0" = "${0#-}" ] ||
+  { command -v shopt >/dev/null && ! shopt -q login_shell; }; then
+  # Source xsh or error out explicitly.
+  . "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh" ||
+    return 1
+
+  xsh runcom env
+fi
+
+xsh runcom interactive

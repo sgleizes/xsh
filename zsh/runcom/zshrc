@@ -1,0 +1,7 @@
+#
+# This file is sourced by `zsh` interactive shells.
+# It is read after ~/.zprofile and /etc/zsh/zshrc.
+#
+
+# It is assumed that $XSH_DIR/init.sh has been sourced.
+xsh runcom interactive

@@ -1,0 +1,7 @@
+#
+# This file is sourced by `bash` login shells on logout.
+# It is read before /etc/bash.bash_logout.
+#
+
+# It is assumed that $XSH_DIR/init.sh has been sourced.
+xsh runcom logout
