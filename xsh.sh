@@ -191,7 +191,7 @@ _xsh_bootstrap() {
     _xsh_log "[$sh] linking shell runcoms"
     for rc in "$XSH_DIR/$rcsh/runcom"/*; do
       if [ $rc = "$XSH_DIR/$rcsh/runcom/*" ]; then
-        echo "xsh: bootstrap: no runcoms found for shell '$rcsh'" >&2
+        _xsh_error "no runcoms found for shell '$rcsh'" -
         continue 2
       fi
 
@@ -261,7 +261,7 @@ _xsh_init() {
     [ "$XSHELL" != 'sh' ] && [ "$XSH_SHELLS" = "$XSHELL" ] \
       && XSH_SHELLS='posix' && _xsh_load_unit 'init'
   } || {
-    _xsh_error "init: failed to load for '$XSH_SHELLS'"
+    _xsh_error "failed to load for '$XSH_SHELLS'"
     return 1
   }
 }
@@ -278,7 +278,7 @@ _xsh_list() {
     mng|manager|managers) skip_mod=1 ;;
     mod|module|modules) skip_mng=1 ;;
     ?*)
-      _xsh_error "list: invalid unit type '$1'"
+      _xsh_error "invalid unit type '$1'"
       return 1
       ;;
   esac
@@ -313,7 +313,7 @@ _xsh_load() {
   fi
 
   _xsh_load_unit "module/$mod/$XSH_RUNCOM_PREFIX$rc" || {
-    _xsh_error "load: failed to load runcom '$rc' of module '$mod' for '$XSH_SHELLS'"
+    _xsh_error "failed to load runcom '$rc' of module '$mod' for '$XSH_SHELLS'"
     return 1
   }
 }
@@ -337,7 +337,7 @@ _xsh_manager() {
   { [ ! "$rcs" ] || [ "$rcs" = '-' ]; } && rcs='interactive'
 
   if [ ! "$mng" ]; then
-    _xsh_error "manager: missing required name"
+    _xsh_error "missing required name"
     return 1
   fi
 
@@ -368,7 +368,7 @@ _xsh_module() {
   { [ ! "$rcs" ] || [ "$rcs" = '-' ]; } && rcs='env:login:interactive:logout'
 
   if [ ! "$mod" ]; then
-    _xsh_error "module: missing required name"
+    _xsh_error "missing required name"
     return 1
   fi
 
@@ -601,12 +601,19 @@ _xsh_log() {
 # Usage: _xsh_error <message> [command]
 # Arguments:
 #   message  The error message to print.
-#   command  The optional command hint.
+#   command  The optional command hint. If '-' no tip is printed.
 _xsh_error() {
   local cmd="${2-$XSH_COMMAND}"
+  local hint=1
 
-  echo "xsh: $1"
-  echo "xsh: try 'xsh help${cmd:+ $cmd}' for more information"
+  if [ "$cmd" = '-' ]; then
+    hint=
+    cmd="$XSH_COMMAND"
+  fi
+
+  echo "xsh: ${cmd:+$cmd: }$1"
+  [ "$hint" ] && \
+    echo "xsh: try 'xsh help${cmd:+ $cmd}' for more information"
   return 1
 } >&2
 
