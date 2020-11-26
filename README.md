@@ -6,7 +6,7 @@ A simple framework for shell configuration management.
 
 [Concept](#design--concepts) • [Installation](#installation) • [Usage](#usage)
 
-![Xsh directory structure](../assets/screenshot.png)
+![Xsh directory structure](https://raw.githubusercontent.com/sgleizes/xsh/assets/screenshot.png)
 
 </div>
 
@@ -30,7 +30,7 @@ A simple framework for shell configuration management.
   - [Migrating you existing configuration](#migrating-you-existing-configuration)
   - [Start a new xsh-powered shell](#start-a-new-xsh-powered-shell)
 - [Usage](#usage)
-  - [Shell initialization file](#shell-initialization-file)
+  - [Initialization file](#initialization-file)
   - [Module runcoms](#module-runcoms)
   - [Managers](#managers-1)
   - [Debugging & Benchmarking](#debugging--benchmarking)
@@ -174,7 +174,7 @@ not `.posix`
 You can change the special character for runcom files by setting the environment
 variable `XSH_RUNCOM_PREFIX` (default `@`). Like `XSH_DIR` this should be set
 before you user's login shell is started. Alternatively, it can be set on a
-per-shell basis in the [xsh initialization file](#shell-initialization-file)
+per-shell basis in the [xsh initialization file](#initialization-file)
 for that shell.
 
 ### Managers
@@ -183,7 +183,7 @@ Managers are meant to represent installation/configuration modules for external
 plugin managers. Technically, they are simply a special kind of module that
 are only registered for a single runcom (`interactive` by default).
 Managers are always loaded before the modules registered for that same runcom.
-Each manager is a single file in `<shell>/manager/`.
+Each manager is a single file with the path `<shell>/manager/<name>.<ext>`.
 
 Managers should only be used to:
 
@@ -201,8 +201,7 @@ This differentiation provides the following benefits:
 
 - Installed third-party plugin managers are made explicit.
 - Third-party modules can be loaded and/or configured in different xsh modules.
-- Modules can rely on the facilities from installed managers since they are
-  always loaded after.
+- Modules can rely on the facilities from installed managers.
 
 Managers can also be used to automatically install plugin managers or frameworks
 for software other than your shell, such as the
@@ -325,7 +324,7 @@ at which point two things happen:
 - The command `xsh init` is executed. This will source the initialization file
   for the current shell. See below.
 
-### Shell initialization file
+### Initialization file
 
 Each type of shell must have a dedicated xsh initialization file located at
 `<shell>/init.<ext>`
@@ -480,7 +479,7 @@ depends on their design and might be tricky in some cases.
 
 I might add a library of example managers to this repository in the future,
 for now you can refer to
-[the ones I use](https://github.com/sgleizes/dotfiles/tree/master/.config/xsh/zsh/manager).
+[the ones I use](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/manager).
 
 ### Debugging & Benchmarking
 
@@ -524,23 +523,23 @@ of configuration should reside.
 [This section of the Zsh FAQ](http://zsh.sourceforge.net/FAQ/zshfaq03.html#l19)
 is a good place to start.
 
-The `env` runcom should be kept as minimal as possible, as it defines the
-environment for non-login, non-interactive shells. It directly affects the
-execution of scripts and should never produce any output.
-It can for example set common environment variables like `EDITOR`, `PAGER`, etc.
+- The `env` runcom should be kept as minimal as possible, as it defines the
+  environment for non-login, non-interactive shells. It directly affects the
+  execution of scripts and should never produce any output. It can for example
+  set common environment variables like `EDITOR`, `PAGER`, etc.
 
-The `login` runcom runs when your user's session starts, it defines the
-environment that will be inherited by all processes from that session. It can
-also be used to perform specific tasks at login-time, or to avoid performing a
-particular task every time you start an interactive shell. It is a good place
-to alter your `PATH`, start an `ssh-agent`, set the `umask`, etc.
+- The `login` runcom runs when your user's session starts, it defines the
+  environment that will be inherited by all processes from that session. It can
+  also be used to perform specific tasks at login-time, or to avoid performing a
+  particular task every time you start an interactive shell. It is a good place
+  to alter your `PATH`, start an `ssh-agent`, set the `umask`, etc.
 
-The `interactive` runcom is for everything else, this is where most of your
-configuration should reside.
+- The `interactive` runcom is for everything else, this is where most of your
+  configuration should reside.
 
-The `logout` runcom runs when your login shell is about to exit. You can use it
-to display a friendly goodbye message, or to cleanup old files from the trash,
-etc.
+- The `logout` runcom runs when your login shell is about to exit. You can use it
+  to display a friendly goodbye message, or to cleanup old files from the trash,
+  etc.
 
 #### Using `posix` as a common base
 
@@ -595,7 +594,7 @@ shell using the same runcoms (e.g. `dash`, `mksh`, ...).
 #### Argument parsing
 
 - Command arguments containing spaces, tabs or newlines are split in separate arguments.
-- The module/manager names must not contain ' ', ':' or ';' characters.
+- The module/manager names must not contain spaces, `:` or `;` characters.
 
 #### POSIX compatibility
 
@@ -614,7 +613,7 @@ preserve compatibility with these shells.
 #### Benchmarking
 
 Benchmarking uses the `date +%N` command (except for zsh), which is not
-supported by all implementations of 'date' and also incurs a significant
+supported by all implementations of `date` and also incurs a significant
 performance impact due to the outer process and command substitution, which
 is a shame when it comes to benchmarking...
 
@@ -636,7 +635,7 @@ Updating should only require to `git pull` from the xsh directory.
 ## Repositories using xsh
 
 My dotfiles repository includes an
-[extensive xsh-powered configuration](https://github.com/sgleizes/dotfiles/tree/master/.config/xsh)
+[extensive xsh-powered configuration](https://github.com/sgleizes/dotfiles/tree/master/.config/shell)
 that could help illustrating the benefits of a modular configuration.
 
 If you decide to migrate your dotfiles to xsh, please add the `xsh` tag to your
