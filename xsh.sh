@@ -52,7 +52,8 @@ XSHELL="${XSHELL#-}" # remove leading '-' for login shells
 #   -b, --benchmark        Set XSH_BENCHMARK, see below.
 #   -v, --verbose          Set XSH_VERBOSE, see below.
 # Globals:
-#   XSH_DIR            Base xsh directory (default: ~/.xsh).
+#   XSH_DIR            Base xsh repository directory (default: ~/.config/xsh).
+#   XSH_CONFIG_DIR     Base xsh configuration directory (default: $XSH_DIR).
 #   XSH_RUNCOM_PREFIX  Prefix for module runcom files (default: @).
 #   XSH_SHELLS         Colon-separated list of shell candidates to lookup for units.
 #   XSH_BENCHMARK      Enable benchmarking the loading time of runcoms and units.
@@ -61,6 +62,7 @@ XSHELL="${XSHELL#-}" # remove leading '-' for login shells
 xsh() {
   # Restrict changes to global options to local scope.
   local XSH_DIR="${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}"
+  local XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-$XSH_DIR}"
   local XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
   local XSH_SHELLS="${XSH_SHELLS:-$XSHELL}"
   local XSH_BENCHMARK="${XSH_BENCHMARK}"
@@ -179,8 +181,9 @@ _xsh_bootstrap() {
     rcsh="$sh"
 
     # If the shell directory doesn't exist, create it and fallback to posix runcoms.
-    if [ ! -d "$XSH_DIR/$sh" ]; then
-      command mkdir "$XSH_DIR/$sh" || { err=1; continue; }
+    if [ ! -d "$XSH_CONFIG_DIR/$sh" ]; then
+      _xsh_log "[$sh] creating directory: $XSH_CONFIG_DIR/$sh"
+      command mkdir -p "$XSH_CONFIG_DIR/$sh" || { err=1; continue; }
     fi
     [ ! -d "$XSH_DIR/$sh/runcom" ] && rcsh='posix'
 
@@ -297,7 +300,7 @@ _xsh_list() {
 #   module  The name of the module to load.
 #   runcom  The runcom file of the module to load.
 # Globals:
-#   XSH_DIR            Used as the base directory to find the module.
+#   XSH_CONFIG_DIR     Used as the base directory to find the module.
 #   XSH_RUNCOM_PREFIX  Used as the prefix for module runcom files.
 #   XSH_SHELLS         Used as the list of shell candidates to lookup for the module.
 _xsh_load() {
@@ -386,7 +389,7 @@ _xsh_module() {
 # Arguments:
 #   runcom  The name of the runcom to load.
 # Globals:
-#   XSH_DIR  Used as the base directory to find units.
+#   XSH_CONFIG_DIR  Used as the base directory to find units.
 _xsh_runcom() {
   XSH_RUNCOM="${1:-${XSH_RUNCOM:-interactive}}"
 
@@ -407,7 +410,7 @@ _xsh_runcom() {
 # Arguments:
 #   unit-type  The type of unit to load, either 'manager' or 'module'.
 # Globals:
-#   XSH_DIR            Used as the base directory to find units.
+#   XSH_CONFIG_DIR     Used as the base directory to find units.
 #   XSH_RUNCOM_PREFIX  Used as the prefix for module runcom files.
 _xsh_load_registered() {
   local utype="$1"
@@ -447,8 +450,8 @@ _xsh_load_registered() {
 # Arguments:
 #   unit  The shell-agnostic path to the unit to load.
 # Globals:
-#   XSH_DIR     Used as the base directory to find the unit.
-#   XSH_SHELLS  Used as the list of shell candidates to lookup for the unit.
+#   XSH_CONFIG_DIR  Used as the base directory to find the unit.
+#   XSH_SHELLS      Used as the list of shell candidates to lookup for the unit.
 _xsh_load_unit() {
   local unit="$1"
   local sh= ext= unitpath=
@@ -465,7 +468,7 @@ _xsh_load_unit() {
 
   for sh in "$@"; do
     [ "$sh" = 'posix' ] && ext='sh' || ext="$sh"
-    unitpath="$XSH_DIR/$sh/$unit.$ext"
+    unitpath="$XSH_CONFIG_DIR/$sh/$unit.$ext"
     if [ ! -r "$unitpath" ]; then
       continue
     fi
@@ -514,9 +517,9 @@ _xsh_source_unit() {
       [ "$ZSH_NAME" ] \
         && elapsed="${$(( SECONDS * 1000 ))%.*}" \
         || elapsed=$(( $(date +%s%3N) - begin ))
-      _xsh_log "${1#$XSH_DIR/} [${elapsed}ms]$errstatus"
+      _xsh_log "${1#$XSH_CONFIG_DIR/} [${elapsed}ms]$errstatus"
     else
-      _xsh_log "${1#$XSH_DIR/}$errstatus"
+      _xsh_log "${1#$XSH_CONFIG_DIR/}$errstatus"
     fi
   fi
 
@@ -534,16 +537,16 @@ _xsh_bootstrap_init_file() {
   local init= desc=
 
   if [ "$sh" = 'posix' ]; then
-    init="$XSH_DIR/$sh/init.sh"
+    init="$XSH_CONFIG_DIR/$sh/init.sh"
     desc='has no
 # dedicated initialization file'
   else
-    init="$XSH_DIR/$sh/init.$sh"
+    init="$XSH_CONFIG_DIR/$sh/init.$sh"
     desc="is \`$sh\`"
   fi
 
   if [ ! -f "$init" ]; then
-    _xsh_log "[$sh] creating default init file: ${init#$XSH_DIR/}"
+    _xsh_log "[$sh] creating default init file: ${init#$XSH_CONFIG_DIR/}"
     command cat >"$init" <<EOF
 #
 # This file is sourced automatically by xsh if the current shell $desc.
@@ -569,10 +572,10 @@ _xsh_bootstrap_module() {
   local ext= rc=
 
   [ "$sh" = 'posix' ] && ext='sh' || ext="$sh"
-  rc="$XSH_DIR/$sh/module/core/${XSH_RUNCOM_PREFIX}interactive.$ext"
+  rc="$XSH_CONFIG_DIR/$sh/module/core/${XSH_RUNCOM_PREFIX}interactive.$ext"
 
   if [ ! -d "$sh/module" ]; then
-    _xsh_log "[$sh] creating default module runcom: ${rc#$XSH_DIR/}"
+    _xsh_log "[$sh] creating default module runcom: ${rc#$XSH_CONFIG_DIR/}"
     command mkdir -p "${rc%/*}"
     command cat >"$rc" <<EOF
 #

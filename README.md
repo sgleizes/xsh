@@ -93,14 +93,17 @@ The design of xsh is built around four main concepts: **shells**, **modules**,
 ### Shells
 
 Shells are the first class citizens of xsh. Configuration for specific shells
-resides in a top-level directory matching that shell's name. Each shell
-directory must contain an initialization file named `init.<ext>`.
+resides in a directory under `$XSH_CONFIG_DIR` matching that shell's name.
+The default value of `XSH_CONFIG_DIR` is `$XSH_DIR`, which must point to the
+location of the xsh repository. The default location is `~/.config/xsh`.
+This document uses `<shell>` to refer to shell directories.
 
+Each shell directory must contain an initialization file named `init.<ext>`.
 If the initialization file for a shell isn't found when the shell starts up,
 xsh will fallback to the initialization file for posix shells instead
 (`posix/init.sh`). This _special_ shell is precisely meant to be used as the
-default fallback, but it is not required to bootstrap it or even have it
-defined if one doesn't need that behavior.
+default fallback, but it is not required to bootstrap it if one doesn't need
+that behavior.
 
 ### Modules
 
@@ -219,6 +222,10 @@ The default location of the `xsh` directory is
 the `XSH_DIR` environment variable must be set to that location before your
 user's login shell is started, for instance in `~/.pam_environment`.
 
+Also if you want to store your shell configuration at a different location than
+in the xsh repository (the default), you can set the `XSH_CONFIG_DIR` environment
+variable. This must also be set before your user's login shell is started.
+
 ### Bootstrap the desired shell(s)
 
 First, xsh must be made available in the current shell:
@@ -262,20 +269,22 @@ bootstrap operation. For simple cases it can be quickly migrated into the
 default module by using commands from the following snippet:
 
 ```sh
+XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}}"
+
 # For POSIX shells
-mv "$HOME/.profile.~1~" "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/posix/module/core/@login.sh"
-mv "$HOME/.shrc.~1~"    "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/posix/module/core/@interactive.sh"
+mv "$HOME/.profile.~1~" "$XSH_CONFIG_DIR/posix/module/core/@login.sh"
+mv "$HOME/.shrc.~1~"    "$XSH_CONFIG_DIR/posix/module/core/@interactive.sh"
 
 # For bash
-mv "$HOME/.bash_profile.~1~" "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/bash/module/core/@login.bash"
-mv "$HOME/.bashrc.~1~"       "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/bash/module/core/@interactive.bash"
-mv "$HOME/.bash_logout.~1~"  "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/bash/module/core/@logout.bash"
+mv "$HOME/.bash_profile.~1~" "$XSH_CONFIG_DIR/bash/module/core/@login.bash"
+mv "$HOME/.bashrc.~1~"       "$XSH_CONFIG_DIR/bash/module/core/@interactive.bash"
+mv "$HOME/.bash_logout.~1~"  "$XSH_CONFIG_DIR/bash/module/core/@logout.bash"
 
 # For zsh
-mv "${ZDOTDIR:-$HOME}/.zshenv.~1~"  "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/zsh/module/core/@env.zsh"
-mv "${ZDOTDIR:-$HOME}/.zlogin.~1~"  "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/zsh/module/core/@login.zsh"
-mv "${ZDOTDIR:-$HOME}/.zshrc.~1~"   "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/zsh/module/core/@interactive.zsh"
-mv "${ZDOTDIR:-$HOME}/.zlogout.~1~" "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/zsh/module/core/@logout.zsh"
+mv "${ZDOTDIR:-$HOME}/.zshenv.~1~"  "$XSH_CONFIG_DIR/zsh/module/core/@env.zsh"
+mv "${ZDOTDIR:-$HOME}/.zlogin.~1~"  "$XSH_CONFIG_DIR/zsh/module/core/@login.zsh"
+mv "${ZDOTDIR:-$HOME}/.zshrc.~1~"   "$XSH_CONFIG_DIR/zsh/module/core/@interactive.zsh"
+mv "${ZDOTDIR:-$HOME}/.zlogout.~1~" "$XSH_CONFIG_DIR/zsh/module/core/@logout.zsh"
 ```
 
 Note that this is not exactly equivalent to your original setup, as the subtle
@@ -548,6 +557,20 @@ for all shells.
 Naturally it implies that these common settings are written in a posixly
 correct manner. Some people might find that it adds clutter and complexity
 for little benefit.
+
+#### Using a different directory for user configuration
+
+If you use `git` to version your shell configuration, keeping it inside the xsh
+repository would be problematic. Or maybe you just want a separation of
+concerns.
+
+You can specify the location of your shell configuration using the
+`XSH_CONFIG_DIR` environment variable. Note that this must be set before your
+user's login shell is started (e.g. in `~/.pam_environment`).
+
+Setting it to `$XDG_CONFIG_HOME` or `$HOME/.config` will result in a
+XDG-compliant configuration structure, with the configuration for each shell
+residing in `~/.config/<shell>`.
 
 #### Removing unused shells from the directory tree
 
