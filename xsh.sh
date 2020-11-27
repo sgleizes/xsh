@@ -33,6 +33,14 @@ XSH_VERSION='0.1.0'
 XSHELL="${ZSH_NAME:-${0##*/}}"
 XSHELL="${XSHELL#-}" # remove leading '-' for login shells
 
+# Set default values for exportable global options.
+# This should not be set at the local xsh scope as it would shadow the exported
+# global value, if any. This would prevent processes started from xsh units to
+# properly inherit the global value.
+XSH_DIR="${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}"
+XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-$XSH_DIR}"
+XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
+
 # A simple framework for shell configuration management.
 #
 # Usage: xsh [options...] <command> [args...]
@@ -60,10 +68,7 @@ XSHELL="${XSHELL#-}" # remove leading '-' for login shells
 #   XSH_VERBOSE        Enable logging the loaded units. If XSH_BENCHMARK is also set,
 #                      the loading time for each unit is printed.
 xsh() {
-  # Restrict changes to global options to local scope.
-  local XSH_DIR="${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}"
-  local XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-$XSH_DIR}"
-  local XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
+  # Restrict changes of unexportable global options to local scope.
   local XSH_SHELLS="${XSH_SHELLS:-$XSHELL}"
   local XSH_BENCHMARK="${XSH_BENCHMARK}"
   local XSH_VERBOSE="${XSH_VERBOSE}"
