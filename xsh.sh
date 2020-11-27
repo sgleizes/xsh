@@ -68,8 +68,8 @@ xsh() {
   local XSH_BENCHMARK="${XSH_BENCHMARK}"
   local XSH_VERBOSE="${XSH_VERBOSE}"
   # Internal local parameters.
-  local XSH_COMMAND=
-  local XSH_LOAD_UNITS=
+  local _XSH_COMMAND=
+  local _XSH_LOAD_UNITS=
   local err=0 begin= elapsed=
 
   # Replace 'sh' by 'posix' if it is the current shell.
@@ -85,25 +85,25 @@ xsh() {
   _xsh_run "$@" || err=1
 
   # Begin runcom benchmark.
-  if [ "$XSH_BENCHMARK" ] && [ "$XSH_COMMAND" = 'runcom' ]; then
+  if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
     [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || begin=$(date '+%s%3N')
   fi
 
   # Source all units marked for loading during xsh execution.
   # This is done separately to avoid propagating the posix emulation to the
   # sourced units, which can be written in any shell dialect.
-  eval "$XSH_LOAD_UNITS" || err=1
+  eval "$_XSH_LOAD_UNITS" || err=1
 
   # End runcom benchmark.
-  if [ "$XSH_BENCHMARK" ] && [ "$XSH_COMMAND" = 'runcom' ]; then
+  if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
     [ "$ZSH_NAME" ] \
       && elapsed="${$(( SECONDS * 1000 ))%.*}" \
       || elapsed=$(( $(date +%s%3N) - begin ))
-    _xsh_log "$XSH_RUNCOM runcom [${elapsed}ms]"
+    _xsh_log "$_XSH_RUNCOM runcom [${elapsed}ms]"
   fi
 
-  # Set the root XSH_LEVEL after the init unit has been sourced to log it at runcom level.
-  [ "$XSH_COMMAND" = 'init' ] && XSH_LEVEL='+'
+  # Set the root _XSH_LEVEL after the init unit has been sourced to log it at runcom level.
+  [ "$_XSH_COMMAND" = 'init' ] && _XSH_LEVEL='+'
   return $err
 }
 
@@ -116,7 +116,7 @@ _xsh_run() {
   while [ $# -gt 0 ]; do
     case "$1" in
     -h|--help)
-      _xsh_help "$XSH_COMMAND"
+      _xsh_help "$_XSH_COMMAND"
       return
       ;;
     -s|--shells)
@@ -134,8 +134,8 @@ _xsh_run() {
       XSH_VERBOSE=1
       ;;
     *)
-      [ ! "$XSH_COMMAND" ] \
-        && XSH_COMMAND="$1" \
+      [ ! "$_XSH_COMMAND" ] \
+        && _XSH_COMMAND="$1" \
         || args="${args:+$args }$1"
       ;;
     esac
@@ -143,14 +143,14 @@ _xsh_run() {
   done
 
   # Show help if no command is provided.
-  if [ ! "$XSH_COMMAND" ]; then
+  if [ ! "$_XSH_COMMAND" ]; then
     _xsh_help
     return 1
   fi
 
-  case "$XSH_COMMAND" in
-    bootstrap|help|init|list|load|manager|module|runcom) eval "_xsh_$XSH_COMMAND $args" ;;
-    *) _xsh_error "invalid command '$XSH_COMMAND'" '' ;;
+  case "$_XSH_COMMAND" in
+    bootstrap|help|init|list|load|manager|module|runcom) eval "_xsh_$_XSH_COMMAND $args" ;;
+    *) _xsh_error "invalid command '$_XSH_COMMAND'" '' ;;
   esac
 }
 
@@ -252,10 +252,10 @@ _xsh_init() {
   # Reset the internal global state.
   # This is done here to lead the user into using a single init file for each shell,
   # using XSH_SHELLS to specify fallbacks explicitly and with more granularity.
-  XSH_MANAGERS=''
-  XSH_MODULES=''
-  XSH_RUNCOM=''
-  XSH_LEVEL=''
+  _XSH_MANAGERS=''
+  _XSH_MODULES=''
+  _XSH_RUNCOM=''
+  _XSH_LEVEL=''
 
   _xsh_load_unit 'init' || {
     # Override XSH_SHELLS in the outer scope so that 'posix' is used as the default shell
@@ -275,7 +275,7 @@ _xsh_init() {
 #   unit-type  The optional type of unit to list, either 'manager' or 'module'.
 _xsh_list() {
   local skip_mng= skip_mod=
-  [ ! "$XSH_MANAGERS" ] && skip_mng=1
+  [ ! "$_XSH_MANAGERS" ] && skip_mng=1
   case "$1" in
     mng|manager|managers) skip_mod=1 ;;
     mod|module|modules) skip_mng=1 ;;
@@ -286,10 +286,10 @@ _xsh_list() {
   esac
 
   [ ! "$skip_mng" ] \
-    && echo "$XSH_MANAGERS" | tr ' ' '\n' | column -s ';' -t -N MANAGER,SHELLS,RUNCOMS \
+    && echo "$_XSH_MANAGERS" | tr ' ' '\n' | column -s ';' -t -N MANAGER,SHELLS,RUNCOMS \
     && [ ! "$skip_mod" ] && echo
   [ ! "$skip_mod" ] \
-    && echo "$XSH_MODULES" | tr ' ' '\n' | column -s ';' -t -N MODULE,SHELLS,RUNCOMS
+    && echo "$_XSH_MODULES" | tr ' ' '\n' | column -s ';' -t -N MODULE,SHELLS,RUNCOMS
   return 0
 }
 
@@ -307,7 +307,7 @@ _xsh_list() {
 #   XSH_SHELLS         Used as the list of shell candidates to lookup for the module.
 _xsh_load() {
   local mod="$1"
-  local rc="${2:-${XSH_RUNCOM:-interactive}}"
+  local rc="${2:-${_XSH_RUNCOM:-interactive}}"
 
   if [ ! "$mod" ]; then
     _xsh_list module
@@ -343,7 +343,7 @@ _xsh_manager() {
     return 1
   fi
 
-  XSH_MANAGERS="${XSH_MANAGERS:+$XSH_MANAGERS }$mng;$XSH_SHELLS;$rcs"
+  _XSH_MANAGERS="${_XSH_MANAGERS:+$_XSH_MANAGERS }$mng;$XSH_SHELLS;$rcs"
   if [ $# -le 2 ]; then
     return 0
   fi
@@ -374,7 +374,7 @@ _xsh_module() {
     return 1
   fi
 
-  XSH_MODULES="${XSH_MODULES:+$XSH_MODULES }$mod;$XSH_SHELLS;$rcs"
+  _XSH_MODULES="${_XSH_MODULES:+$_XSH_MODULES }$mod;$XSH_SHELLS;$rcs"
   if [ $# -le 2 ]; then
     return 0
   fi
@@ -393,7 +393,7 @@ _xsh_module() {
 # Globals:
 #   XSH_CONFIG_DIR  Used as the base directory to find units.
 _xsh_runcom() {
-  XSH_RUNCOM="${1:-${XSH_RUNCOM:-interactive}}"
+  _XSH_RUNCOM="${1:-${_XSH_RUNCOM:-interactive}}"
 
   # Load registered plugin managers for the selected runcom.
   _xsh_load_registered manager
@@ -423,8 +423,8 @@ _xsh_load_registered() {
   {
     set -o noglob
     case "$utype" in
-      manager) set -- $XSH_MANAGERS ;;
-      module) set -- $XSH_MODULES ;;
+      manager) set -- $_XSH_MANAGERS ;;
+      module) set -- $_XSH_MODULES ;;
     esac
     set +o noglob
   }
@@ -432,12 +432,12 @@ _xsh_load_registered() {
   # Load units that are registered for the current runcom.
   for unit in "$@"; do
     rcs="${unit##*;}"
-    case $rcs in (*"$XSH_RUNCOM"*)
+    case $rcs in (*"$_XSH_RUNCOM"*)
       unit="${unit%;*}"        # remove runcoms from list entry
       XSH_SHELLS="${unit#*;}"  # extract shells from list entry
       unit="$utype/${unit%;*}" # extract name from list entry
 
-      [ "$utype" = 'module' ] && unit="$unit/$XSH_RUNCOM_PREFIX$XSH_RUNCOM"
+      [ "$utype" = 'module' ] && unit="$unit/$XSH_RUNCOM_PREFIX$_XSH_RUNCOM"
       _xsh_load_unit "$unit"
     esac
   done
@@ -475,7 +475,7 @@ _xsh_load_unit() {
       continue
     fi
 
-    XSH_LOAD_UNITS="${XSH_LOAD_UNITS:+$XSH_LOAD_UNITS; }_xsh_source_unit '$unitpath'"
+    _XSH_LOAD_UNITS="${_XSH_LOAD_UNITS:+$_XSH_LOAD_UNITS; }_xsh_source_unit '$unitpath'"
     return 0
   done
   return 1
@@ -491,7 +491,7 @@ _xsh_load_unit() {
 #   XSH_VERBOSE    Used to enable logging the loaded unit.
 _xsh_source_unit() {
   local begin= elapsed= ext= err= errstatus=
-  XSH_LEVEL="$XSH_LEVEL+"
+  _XSH_LEVEL="$_XSH_LEVEL+"
 
   # Begin unit benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$XSH_VERBOSE" ]; then
@@ -525,7 +525,7 @@ _xsh_source_unit() {
     fi
   fi
 
-  XSH_LEVEL="${XSH_LEVEL%*+}"
+  _XSH_LEVEL="${_XSH_LEVEL%*+}"
   return $err
 }
 
@@ -595,7 +595,7 @@ EOF
 # Arguments:
 #   message  The error message to print.
 _xsh_log() {
-  printf '%s %s\n' "$XSH_LEVEL" "$1"
+  printf '%s %s\n' "$_XSH_LEVEL" "$1"
 }
 
 # Print an error message with a tip for help.
@@ -605,12 +605,12 @@ _xsh_log() {
 #   message  The error message to print.
 #   command  The optional command hint. If '-' no tip is printed.
 _xsh_error() {
-  local cmd="${2-$XSH_COMMAND}"
+  local cmd="${2-$_XSH_COMMAND}"
   local hint=1
 
   if [ "$cmd" = '-' ]; then
     hint=
-    cmd="$XSH_COMMAND"
+    cmd="$_XSH_COMMAND"
   fi
 
   echo "xsh: ${cmd:+$cmd: }$1"
