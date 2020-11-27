@@ -247,6 +247,8 @@ _xsh_help() {
 # Globals:
 #   XSH_SHELLS  Used as the list of shell candidates to lookup for the xsh init file.
 _xsh_init() {
+  local sh="$XSH_SHELLS"
+
   # Reset the internal global state.
   # This is done here to lead the user into using a single init file for each shell,
   # using XSH_SHELLS to specify fallbacks explicitly and with more granularity.
@@ -261,7 +263,7 @@ _xsh_init() {
     [ "$XSHELL" != 'sh' ] && [ "$XSH_SHELLS" = "$XSHELL" ] \
       && XSH_SHELLS='posix' && _xsh_load_unit 'init'
   } || {
-    _xsh_error "failed to load for '$XSH_SHELLS'"
+    _xsh_error "no configuration found for '$sh'" -
     return 1
   }
 }

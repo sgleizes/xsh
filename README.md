@@ -237,8 +237,7 @@ Note that sourcing the script at this point will warn you that the
 initialization file for the current shell could not be found:
 
 ```
-xsh: init: failed to load for 'posix'
-xsh: try 'xsh help init' for more information
+xsh: init: no configuration found for 'zsh'
 ```
 
 This is expected and can be safely ignored since we haven't bootstrapped any
