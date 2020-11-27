@@ -586,7 +586,7 @@ _xsh_bootstrap_module() {
   [ "$sh" = 'posix' ] && ext='sh' || ext="$sh"
   rc="$XSH_CONFIG_DIR/$sh/module/core/${XSH_RUNCOM_PREFIX}interactive.$ext"
 
-  if [ ! -d "$sh/module" ]; then
+  if [ ! -d "$XSH_CONFIG_DIR/$sh/module" ]; then
     _xsh_log "[$sh] creating default module runcom: ${rc#$XSH_CONFIG_DIR/}"
     command mkdir -p "${rc%/*}"
     command cat >"$rc" <<EOF
