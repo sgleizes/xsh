@@ -68,9 +68,11 @@ xsh() {
   local XSH_BENCHMARK="${XSH_BENCHMARK}"
   local XSH_VERBOSE="${XSH_VERBOSE}"
   # Internal local parameters.
+  # NOTE: Variables in this scope are exposed to sourced units and are prefixed
+  # with '_' to avoid potential conflicts.
   local _XSH_COMMAND=
   local _XSH_LOAD_UNITS=
-  local err=0 begin= elapsed=
+  local _err=0 _begin= _elapsed=
 
   # Replace 'sh' by 'posix' if it is the current shell.
   # This is not done post option processing since AFAIK it would require
@@ -82,29 +84,29 @@ xsh() {
   # In the scope of the current function, zsh emulation is not active so
   # we must make sure that the code executed here is compliant with the POSIX
   # specification and zsh's default options.
-  _xsh_run "$@" || err=1
+  _xsh_run "$@" || _err=1
 
   # Begin runcom benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
-    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || begin=$(date '+%s%3N')
+    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(date '+%s%3N')
   fi
 
   # Source all units marked for loading during xsh execution.
   # This is done separately to avoid propagating the posix emulation to the
   # sourced units, which can be written in any shell dialect.
-  eval "$_XSH_LOAD_UNITS" || err=1
+  eval "$_XSH_LOAD_UNITS" || _err=1
 
   # End runcom benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
     [ "$ZSH_NAME" ] \
-      && elapsed="${$(( SECONDS * 1000 ))%.*}" \
-      || elapsed=$(( $(date +%s%3N) - begin ))
-    _xsh_log "$_XSH_RUNCOM runcom [${elapsed}ms]"
+      && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
+      || _elapsed=$(( $(date +%s%3N) - _begin ))
+    _xsh_log "$_XSH_RUNCOM runcom [${_elapsed}ms]"
   fi
 
   # Set the root _XSH_LEVEL after the init unit has been sourced to log it at runcom level.
   [ "$_XSH_COMMAND" = 'init' ] && _XSH_LEVEL='+'
-  return $err
+  return $_err
 }
 
 # Internal xsh entrypoint, scope of posix emulation for zsh.
@@ -490,38 +492,41 @@ _xsh_load_unit() {
 #   XSH_BENCHMARK  Used to enable benchmarking the loading time of the unit.
 #   XSH_VERBOSE    Used to enable logging the loaded unit.
 _xsh_source_unit() {
-  local begin= elapsed= ext= err= errstatus=
+  # NOTE: Variables in this scope are exposed to sourced units and are prefixed
+  # with '_' to avoid potential conflicts.
+  # Even if they are modified, there are no dangerous side effects.
+  local _begin= _elapsed= _ext= _err= _errstatus=
   _XSH_LEVEL="$_XSH_LEVEL+"
 
   # Begin unit benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$XSH_VERBOSE" ]; then
-    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || begin=$(date '+%s%3N')
+    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(date '+%s%3N')
   fi
 
   # Source the unit or select the appropriate emulation mode for zsh.
-  ext="${1##*.}"
-  if [ "$ZSH_NAME" ] && [ "$ext" != 'zsh' ]; then
-    case "$ext" in
-      ksh|csh) emulate "$ext" -c ". $1" ;;
+  _ext="${1##*.}"
+  if [ "$ZSH_NAME" ] && [ "$_ext" != 'zsh' ]; then
+    case "$_ext" in
+      ksh|csh) emulate "$_ext" -c ". $1" ;;
       *) emulate sh -c ". $1" ;;
     esac
   else
     . "$1"
   fi
-  err=$?
+  _err=$?
 
   # Status/benchmark report.
   if [ "$XSH_VERBOSE" ]; then
-    [ $err -ne 0 ] && errstatus=" [ret: $err]"
+    [ $_err -ne 0 ] && _errstatus=" [ret: $_err]"
 
     # End unit benchmark.
     if [ "$XSH_BENCHMARK" ]; then
       [ "$ZSH_NAME" ] \
-        && elapsed="${$(( SECONDS * 1000 ))%.*}" \
-        || elapsed=$(( $(date +%s%3N) - begin ))
-      _xsh_log "${1#$XSH_CONFIG_DIR/} [${elapsed}ms]$errstatus"
+        && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
+        || _elapsed=$(( $(date +%s%3N) - _begin ))
+      _xsh_log "${1#$XSH_CONFIG_DIR/} [${_elapsed}ms]$_errstatus"
     else
-      _xsh_log "${1#$XSH_CONFIG_DIR/}$errstatus"
+      _xsh_log "${1#$XSH_CONFIG_DIR/}$_errstatus"
     fi
   fi
 
