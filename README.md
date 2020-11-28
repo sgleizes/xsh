@@ -626,10 +626,12 @@ distribution.
 
 ## Updating
 
-Xsh is not expected to go through any major updates at this point, and all
-changes will (try to) be non-breaking.
+This project is still in early development stage, depending on the received
+feedback I might introduce breaking changes. Please make sure to check the
+release notes before upgrading.
 
-Updating should only require to `git pull` from the xsh directory.
+Updating to the latest version only requires to `git pull` from the xsh
+directory. Use `git checkout <tag>` to use a specific version.
 
 ## Repositories using xsh
 
