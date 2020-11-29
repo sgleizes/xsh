@@ -106,7 +106,7 @@ that behavior.
 ### Modules
 
 Modules are simply pluggable pieces of configuration for a given shell.
-Practically speaking, modules are directories in `<shell>/module/`.
+Practically speaking, modules are directories in `<shell>/`.
 Each module directory contains the runcoms that should be loaded by xsh,
 as well as any additional files you would like to put there.
 
@@ -121,7 +121,8 @@ Shell runcoms are the shell-specific initialization files that are abstracted
 away by xsh. When a shell starts or exits, it will load these files according
 to its own set of rules, which xsh translates into a uniform and consistent
 behavior for all shells. You normally don't need to worry about these, but for
-reference the implementation for each shell can be found in `<shell>/runcom`.
+reference the implementation for each shell can be found in the `runcom`
+directory.
 
 Xsh runcoms, or simply runcoms in the context of this document, are the
 resulting abstract concept. They can be seen as layers of configuration that
@@ -165,7 +166,7 @@ role of these files in module directories, they must respect the following
 naming scheme: `@<runcom>.<ext>`.
 
 For example, the file representing the `login` runcom for the `core` module of
-the `bash` shell must be `bash/module/core/@login.bash`.
+the `bash` shell must be `bash/core/@login.bash`.
 Note that for the (somewhat special) `posix` shell, the extension is `.sh` and
 not `.posix`
 
@@ -237,19 +238,19 @@ default module by using commands from the following snippet:
 XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}}"
 
 # For POSIX shells
-mv "$HOME/.profile.~1~" "$XSH_CONFIG_DIR/posix/module/core/@login.sh"
-mv "$HOME/.shrc.~1~"    "$XSH_CONFIG_DIR/posix/module/core/@interactive.sh"
+mv "$HOME/.profile.~1~" "$XSH_CONFIG_DIR/posix/core/@login.sh"
+mv "$HOME/.shrc.~1~"    "$XSH_CONFIG_DIR/posix/core/@interactive.sh"
 
 # For bash
-mv "$HOME/.bash_profile.~1~" "$XSH_CONFIG_DIR/bash/module/core/@login.bash"
-mv "$HOME/.bashrc.~1~"       "$XSH_CONFIG_DIR/bash/module/core/@interactive.bash"
-mv "$HOME/.bash_logout.~1~"  "$XSH_CONFIG_DIR/bash/module/core/@logout.bash"
+mv "$HOME/.bash_profile.~1~" "$XSH_CONFIG_DIR/bash/core/@login.bash"
+mv "$HOME/.bashrc.~1~"       "$XSH_CONFIG_DIR/bash/core/@interactive.bash"
+mv "$HOME/.bash_logout.~1~"  "$XSH_CONFIG_DIR/bash/core/@logout.bash"
 
 # For zsh
-mv "${ZDOTDIR:-$HOME}/.zshenv.~1~"  "$XSH_CONFIG_DIR/zsh/module/core/@env.zsh"
-mv "${ZDOTDIR:-$HOME}/.zlogin.~1~"  "$XSH_CONFIG_DIR/zsh/module/core/@login.zsh"
-mv "${ZDOTDIR:-$HOME}/.zshrc.~1~"   "$XSH_CONFIG_DIR/zsh/module/core/@interactive.zsh"
-mv "${ZDOTDIR:-$HOME}/.zlogout.~1~" "$XSH_CONFIG_DIR/zsh/module/core/@logout.zsh"
+mv "${ZDOTDIR:-$HOME}/.zshenv.~1~"  "$XSH_CONFIG_DIR/zsh/core/@env.zsh"
+mv "${ZDOTDIR:-$HOME}/.zlogin.~1~"  "$XSH_CONFIG_DIR/zsh/core/@login.zsh"
+mv "${ZDOTDIR:-$HOME}/.zshrc.~1~"   "$XSH_CONFIG_DIR/zsh/core/@interactive.zsh"
+mv "${ZDOTDIR:-$HOME}/.zlogout.~1~" "$XSH_CONFIG_DIR/zsh/core/@logout.zsh"
 ```
 
 Note that this is not exactly equivalent to your original setup, as the subtle
@@ -313,7 +314,7 @@ xsh module core
 
 This will simply register the `core` module for all runcoms of the current
 shell. For example, when xsh loads the `env` runcom, it will look for the
-corresponding runcom file `<shell>/module/core/@env.<ext>`.
+corresponding runcom file `<shell>/core/@env.<ext>`.
 
 You can also register a module from another shell, if that other shell's
 language can be properly interpreted by the executing shell (e.g. loading a zsh
@@ -325,16 +326,16 @@ module from a posix shell is not a good idea). For example:
 xsh module core -s posix
 ```
 
-This will look for the runcoms of the core module in `posix/module/core`
-instead of `bash/module/core`.
+This will look for the runcoms of the core module in `posix/core` instead of
+`bash/core`.
 
 Additionally, in the following situation:
 
 ```
-posix/module/core/
+posix/core/
   @env.sh
   @interactive.sh
-bash/module/core/
+bash/core/
   @login.bash
 ```
 
@@ -373,10 +374,10 @@ You can achieve this by using the `xsh load` command.
 For example, in the following situation:
 
 ```
-posix/module/core/
+posix/core/
   @env.sh
   @interactive.sh
-bash/module/core/
+bash/core/
   @interactive.bash
 ```
 
@@ -385,19 +386,19 @@ the interactive runcom of the posix module would not be loaded, as it is found
 in the bash module directory first.
 You can load that runcom from the bash module as a dependency:
 
-> File: **`bash/module/core/@interactive.bash`**
+> File: **`bash/core/@interactive.bash`**
 
 ```sh
 xsh load core -s posix
 ```
 
-This will load `posix/module/core/@interactive.sh` directly.
+This will load `posix/core/@interactive.sh` directly.
 
 That command can also be used to load a runcom of a different module as part
 of a module's configuration. This is usually needed if loading the dependee
 module is conditionally based on a predicate from the dependent module:
 
-> File: **`bash/module/core/@interactive.bash`**
+> File: **`bash/core/@interactive.bash`**
 
 ```sh
 if some_predicate; then
@@ -405,7 +406,7 @@ if some_predicate; then
 fi
 ```
 
-This will load `bash/module/other/@interactive.bash` directly.
+This will load `bash/other/@interactive.bash` directly.
 
 See also `xsh help` and `xsh help load`.
 
@@ -497,24 +498,6 @@ user's login shell is started (e.g. in `~/.pam_environment`).
 Setting it to `$XDG_CONFIG_HOME` or `$HOME/.config` will result in a
 XDG-compliant configuration structure, with the configuration for each shell
 residing in `~/.config/<shell>`.
-
-#### Removing unused shells from the directory tree
-
-If you use xsh as a configuration framework for a single shell, you might want
-to cleanup `XSH_DIR` and get rid of the unused shells. You could simply remove
-them, but they will then show-up in `git status`. A cleaner solution would be
-to use `git sparse-checkout`.
-
-Let's say, you are a `zsh` user and _never_ use any other shell (interactively).
-You can get rid of the `bash` and `posix` directories with the following:
-
-```sh
-git sparse-checkout set '/*' '!/bash' '!/posix'
-```
-
-You should make sure that none of these shells are bootstrapped first.
-Note that if you remove the `posix` shell, you won't be able to bootstrap any
-shell using the same runcoms (e.g. `dash`, `mksh`, ...).
 
 ### Known limitations
 

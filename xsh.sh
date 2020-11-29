@@ -186,17 +186,18 @@ _xsh_bootstrap() {
   for sh in "$@"; do
     rcsh="$sh"
 
-    # If the shell directory doesn't exist, create it and fallback to posix runcoms.
+    # If the shell directory doesn't exist, create it.
     if [ ! -d "$XSH_CONFIG_DIR/$sh" ]; then
       _xsh_log "[$sh] creating directory: $XSH_CONFIG_DIR/$sh"
       command mkdir -p "$XSH_CONFIG_DIR/$sh" || { err=1; continue; }
     fi
-    [ ! -d "$XSH_DIR/$sh/runcom" ] && rcsh='posix'
+    # Fallback to posix runcoms.
+    [ ! -d "$XSH_DIR/runcom/$sh" ] && rcsh='posix'
 
     # Link shell runcoms to the user's home directory.
     _xsh_log "[$sh] linking shell runcoms"
-    for rc in "$XSH_DIR/$rcsh/runcom"/*; do
-      if [ $rc = "$XSH_DIR/$rcsh/runcom/*" ]; then
+    for rc in "$XSH_DIR/runcom/$rcsh"/*; do
+      if [ $rc = "$XSH_DIR/runcom/$rcsh/*" ]; then
         _xsh_error "no runcoms found for shell '$rcsh'" -
         continue 2
       fi
@@ -302,7 +303,7 @@ _xsh_load() {
     return 1
   fi
 
-  _xsh_load_unit "module/$mod/$XSH_RUNCOM_PREFIX$rc" || {
+  _xsh_load_unit "$mod/$XSH_RUNCOM_PREFIX$rc" || {
     _xsh_error "failed to load runcom '$rc' of module '$mod' for '$XSH_SHELLS'"
     return 1
   }
@@ -384,7 +385,7 @@ _xsh_load_registered() {
       XSH_SHELLS="${unit#*;}"  # extract shells from list entry
       unit="${unit%;*}"        # extract name from list entry
 
-      _xsh_load_unit "module/$unit/$XSH_RUNCOM_PREFIX$_XSH_RUNCOM"
+      _xsh_load_unit "$unit/$XSH_RUNCOM_PREFIX$_XSH_RUNCOM"
     esac
   done
   return 0
@@ -523,11 +524,12 @@ _xsh_bootstrap_module() {
   local ext= rc=
 
   [ "$sh" = 'posix' ] && ext='sh' || ext="$sh"
-  rc="$XSH_CONFIG_DIR/$sh/module/core/${XSH_RUNCOM_PREFIX}interactive.$ext"
+  rc="$XSH_CONFIG_DIR/$sh/core/${XSH_RUNCOM_PREFIX}interactive.$ext"
 
-  if [ ! -d "$XSH_CONFIG_DIR/$sh/module" ]; then
+  # Check if there are existing module directories.
+  if ! command ls -d "$XSH_CONFIG_DIR/$sh"/*/ >/dev/null 2>&1; then
     _xsh_log "[$sh] creating default module runcom: ${rc#$XSH_CONFIG_DIR/}"
-    command mkdir -p "${rc%/*}"
+    command mkdir "${rc%/*}"
     command cat >"$rc" <<EOF
 #
 # Core configuration module.
