@@ -1,4 +1,3 @@
-# User configuration.
-*/init.*
-*/manager/
-*/module/
+# Ignore all shell configuration directories.
+/*/
+!/runcom/
