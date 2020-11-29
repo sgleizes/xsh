@@ -495,9 +495,10 @@ You can specify the location of your shell configuration using the
 `XSH_CONFIG_DIR` environment variable. Note that this must be set before your
 user's login shell is started (e.g. in `~/.pam_environment`).
 
-Setting it to `$XDG_CONFIG_HOME` or `$HOME/.config` will result in a
-XDG-compliant configuration structure, with the configuration for each shell
-residing in `~/.config/<shell>`.
+Setting it to `$HOME/.config` or `$HOME/.config/shell` will result in a
+[XDG-compliant](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
+configuration structure, with the configuration for each shell residing in
+`~/.config/<shell>` or `~/.config/shell/<shell>`.
 
 ### Known limitations
 
