@@ -23,7 +23,6 @@ A simple framework for shell configuration management.
   - [Shells](#shells)
   - [Modules](#modules)
   - [Runcoms](#runcoms)
-  - [Managers](#managers)
 - [Installation](#installation)
   - [Clone the repository](#clone-the-repository)
   - [Bootstrap the desired shell(s)](#bootstrap-the-desired-shells)
@@ -32,7 +31,6 @@ A simple framework for shell configuration management.
 - [Usage](#usage)
   - [Initialization file](#initialization-file)
   - [Module runcoms](#module-runcoms)
-  - [Managers](#managers-1)
   - [Debugging & Benchmarking](#debugging--benchmarking)
   - [Tips & Tricks](#tips--tricks)
   - [Known limitations](#known-limitations)
@@ -87,8 +85,8 @@ Feel free to open an issue if you'd like another shell to be supported.
 
 ## Design & Concepts
 
-The design of xsh is built around four main concepts: **shells**, **modules**,
-**runcoms** and **managers**.
+The design of xsh is built around three main concepts: **shells**, **modules**
+and **runcoms**.
 
 ### Shells
 
@@ -176,37 +174,6 @@ variable `XSH_RUNCOM_PREFIX` (default `@`). Like `XSH_DIR` this should be set
 before you user's login shell is started. Alternatively, it can be set on a
 per-shell basis in the [xsh initialization file](#initialization-file)
 for that shell.
-
-### Managers
-
-Managers are meant to represent installation/configuration modules for external
-plugin managers. Technically, they are simply a special kind of module that
-are only registered for a single runcom (`interactive` by default).
-Managers are always loaded before the modules registered for that same runcom.
-Each manager is a single file with the path `<shell>/manager/<name>.<ext>`.
-
-Managers should only be used to:
-
-- Automatically install third-party plugin managers or frameworks.
-- Automatically patch the installed software, if needed.
-- Load and/or configure the installed software.
-
-The need for a differentiation between managers and modules emerged as it
-seemed wrong to integrate external plugin managers as regular modules, since
-they also provide their own concept of "modules" (or "plugins").
-As such, they are used to bring in third-party modules that can be loaded
-and/or configured by specific xsh modules as an additional configuration layer.
-
-This differentiation provides the following benefits:
-
-- Installed third-party plugin managers are made explicit.
-- Third-party modules can be loaded and/or configured in different xsh modules.
-- Modules can rely on the facilities from installed managers.
-
-Managers can also be used to automatically install plugin managers or frameworks
-for software other than your shell, such as the
-[tmux plugin manager](https://github.com/tmux-plugins/tpm/),
-[doom-emacs](https://github.com/hlissner/doom-emacs/), etc.
 
 ## Installation
 
@@ -328,8 +295,8 @@ at which point two things happen:
 Each type of shell must have a dedicated xsh initialization file located at
 `<shell>/init.<ext>`
 
-This file should merely register the manager(s) and modules to be loaded by
-each runcom (`env`, `login`, `interactive`, `logout`).
+This file should merely register the modules to be loaded for each runcom:
+`env`, `login`, `interactive` and `logout`.
 The order in which the modules are registered defines the order in which
 they will be loaded.
 
@@ -396,35 +363,6 @@ performing unnecessary file lookup every time a shell starts up.
 
 See also `xsh help` and `xsh help module`.
 
-#### Loading managers
-
-Managers can be registered using the `xsh manager` command.
-Since they are always loaded before the modules of the same runcom, for clarity
-they should be registered first in the initialization file.
-
-> File: **`zsh/init.zsh`**
-
-```sh
-xsh manager zinit
-xsh module core
-```
-
-This will register the `zinit` manager for the `interactive` runcom.
-When xsh loads the `interactive` runcom, it will look for the files to load in
-this order:
-
-- `zsh/manager/zinit.zsh`
-- `zsh/module/core/@interactive.zsh`.
-
-If you want to register a manager for a different runcom than the default
-`interactive`, the syntax is the same than for modules:
-
-```sh
-xsh manager doom-emacs login
-```
-
-See also `xsh help` and `xsh help manager`.
-
 ### Module runcoms
 
 The module contents and organization is entirely up to you. During this design
@@ -471,19 +409,9 @@ This will load `bash/module/other/@interactive.bash` directly.
 
 See also `xsh help` and `xsh help load`.
 
-### Managers
-
-The specific implementation for integrating each external plugin managers
-depends on their design and might be tricky in some cases.
-
-I might add a library of example managers to this repository in the future,
-for now you can refer to
-[the ones I use](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/manager).
-
 ### Debugging & Benchmarking
 
-The list of managers and/or modules registered in the current shell can be
-displayed:
+The list of modules registered in the current shell can be displayed:
 
 ```sh
 xsh list
@@ -593,7 +521,7 @@ shell using the same runcoms (e.g. `dash`, `mksh`, ...).
 #### Argument parsing
 
 - Command arguments containing spaces, tabs or newlines are split in separate arguments.
-- The module/manager names must not contain spaces, `:` or `;` characters.
+- The module names must not contain spaces, `:` or `;` characters.
 
 #### POSIX compatibility
 

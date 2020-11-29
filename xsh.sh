@@ -9,7 +9,7 @@
 # Known limitations:
 # - Command arguments containing spaces, tabs or newlines are split in separate arguments.
 #
-# - The module/manager names must not contain ' ', ':' or ';' characters.
+# - The module names must not contain ' ', ':' or ';' characters.
 #
 # - Benchmarking uses the 'date +%N' command (except for zsh), which is not supported by
 #   all implementations of 'date' and also incurs a significant performance impact due to
@@ -45,14 +45,13 @@ XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
 #
 # Usage: xsh [options...] <command> [args...]
 # Commands:
-#   bootstrap                        Bootstrap xsh for the current or specified shells.
-#   help [command]                   Display help information.
-#   init                             Source the xsh init file for the current shell.
-#   list [unit-type]                 List registered units.
-#   load <module> [runcom]           Source a module runcom.
-#   manager <manager> [runcoms] ...  Register plugin manager units.
-#   module <module> [runcoms] ...    Register module units.
-#   runcom [runcom]                  Source all units registered with a runcom.
+#   bootstrap                      Bootstrap xsh for the current or specified shells.
+#   help [command]                 Display help information.
+#   init                           Source the xsh init file for the current shell.
+#   list                           List registered modules.
+#   load <module> [runcom]         Source a module runcom.
+#   module <module> [runcoms] ...  Register modules for automatic loading.
+#   runcom [runcom]                Source a runcom of each registered module.
 # Try 'xsh help [command]' for more information about a specific command.
 # Options:
 #   -h, --help             Display help information for xsh or the current command.
@@ -156,7 +155,7 @@ _xsh_run() {
   fi
 
   case "$_XSH_COMMAND" in
-    bootstrap|help|init|list|load|manager|module|runcom) eval "_xsh_$_XSH_COMMAND $args" ;;
+    bootstrap|help|init|list|load|module|runcom) eval "_xsh_$_XSH_COMMAND $args" ;;
     *) _xsh_error "invalid command '$_XSH_COMMAND'" '' ;;
   esac
 }
@@ -259,7 +258,6 @@ _xsh_init() {
   # Reset the internal global state.
   # This is done here to lead the user into using a single init file for each shell,
   # using XSH_SHELLS to specify fallbacks explicitly and with more granularity.
-  _XSH_MANAGERS=''
   _XSH_MODULES=''
   _XSH_RUNCOM=''
   _XSH_LEVEL=''
@@ -275,28 +273,11 @@ _xsh_init() {
   }
 }
 
-# List the registered managers and/or modules for the current shell.
+# List the registered modules for the current shell.
 #
-# Usage: xsh list [unit-type]
-# Arguments:
-#   unit-type  The optional type of unit to list, either 'manager' or 'module'.
+# Usage: xsh list
 _xsh_list() {
-  local skip_mng= skip_mod=
-  [ ! "$_XSH_MANAGERS" ] && skip_mng=1
-  case "$1" in
-    mng|manager|managers) skip_mod=1 ;;
-    mod|module|modules) skip_mng=1 ;;
-    ?*)
-      _xsh_error "invalid unit type '$1'"
-      return 1
-      ;;
-  esac
-
-  [ ! "$skip_mng" ] \
-    && echo "$_XSH_MANAGERS" | tr ' ' '\n' | column -s ';' -t -N MANAGER,SHELLS,RUNCOMS \
-    && [ ! "$skip_mod" ] && echo
-  [ ! "$skip_mod" ] \
-    && echo "$_XSH_MODULES" | tr ' ' '\n' | column -s ';' -t -N MODULE,SHELLS,RUNCOMS
+  echo "$_XSH_MODULES" | tr ' ' '\n' | column -s ';' -t -N MODULE,SHELLS,RUNCOMS
   return 0
 }
 
@@ -317,7 +298,7 @@ _xsh_load() {
   local rc="${2:-${_XSH_RUNCOM:-interactive}}"
 
   if [ ! "$mod" ]; then
-    _xsh_list module
+    _xsh_list
     return 1
   fi
 
@@ -325,37 +306,6 @@ _xsh_load() {
     _xsh_error "failed to load runcom '$rc' of module '$mod' for '$XSH_SHELLS'"
     return 1
   }
-}
-
-# Register plugin manager(s) to be installed and loaded by the current shell.
-# Valid values for the runcoms argument are: env, login, interactive, logout.
-# Multiple values can be specified separated by colons (e.g. login:interactive).
-# By default or with the special value '-', the 'interactive' runcom is used.
-# Multiple managers can be specified, in which case the runcom argument is required
-# between each manager name (use '-' to keep the default behavior).
-#
-# Usage: xsh manager <manager> [runcoms] ...
-# Arguments:
-#   manager  The name of the manager to install or load.
-#   runcoms  A colon-separated list of runcoms for which the manager should be loaded.
-# Globals:
-#   XSH_SHELLS  Used as the list of shell candidates to lookup for the manager.
-_xsh_manager() {
-  local mng="$1"
-  local rcs="$2"
-  { [ ! "$rcs" ] || [ "$rcs" = '-' ]; } && rcs='interactive'
-
-  if [ ! "$mng" ]; then
-    _xsh_error "missing required name"
-    return 1
-  fi
-
-  _XSH_MANAGERS="${_XSH_MANAGERS:+$_XSH_MANAGERS }$mng;$XSH_SHELLS;$rcs"
-  if [ $# -le 2 ]; then
-    return 0
-  fi
-
-  shift 2 && _xsh_manager "$@"
 }
 
 # Register module(s) to be loaded by the current shell.
@@ -367,7 +317,7 @@ _xsh_manager() {
 #
 # Usage: xsh module <module> [runcoms] ...
 # Arguments:
-#   module   The name of the module to load.
+#   module   The name of the module to register.
 #   runcoms  A colon-separated list of runcoms provided by the module.
 # Globals:
 #   XSH_SHELLS  Used as the list of shell candidates to lookup for the module.
@@ -389,8 +339,7 @@ _xsh_module() {
   shift 2 && _xsh_module "$@"
 }
 
-# Load the managers registered with the given runcom, then load the
-# corresponding runcom of registered modules.
+# Load the given runcom of each registered module.
 # The runcom argument, if any, must be one of: env, login, interactive, logout.
 # By default the current runcom is used, or 'interactive' if that is not set.
 #
@@ -402,37 +351,28 @@ _xsh_module() {
 _xsh_runcom() {
   _XSH_RUNCOM="${1:-${_XSH_RUNCOM:-interactive}}"
 
-  # Load registered plugin managers for the selected runcom.
-  _xsh_load_registered manager
-  # Load the selected runcom of registered modules.
-  _xsh_load_registered module
+  _xsh_load_registered
 }
 
 #
 # Backend functions
 #
 
-# Load all managers or modules for the current runcom in the current shell.
-# The units are loaded only if they are registered for the current runcom.
+# Load all registered units for the current runcom in the current shell.
+# The units are only loaded if they are registered for the current runcom.
 #
-# Usage: _xsh_load_registered <unit-type>
-# Arguments:
-#   unit-type  The type of unit to load, either 'manager' or 'module'.
+# Usage: _xsh_load_registered
 # Globals:
 #   XSH_CONFIG_DIR     Used as the base directory to find units.
 #   XSH_RUNCOM_PREFIX  Used as the prefix for module runcom files.
 _xsh_load_registered() {
-  local utype="$1"
   local unit= rcs=
 
   # Assign the units as positional parameters.
   # shellcheck disable=SC2086
   {
     set -o noglob
-    case "$utype" in
-      manager) set -- $_XSH_MANAGERS ;;
-      module) set -- $_XSH_MODULES ;;
-    esac
+    set -- $_XSH_MODULES
     set +o noglob
   }
 
@@ -442,16 +382,15 @@ _xsh_load_registered() {
     case $rcs in (*"$_XSH_RUNCOM"*)
       unit="${unit%;*}"        # remove runcoms from list entry
       XSH_SHELLS="${unit#*;}"  # extract shells from list entry
-      unit="$utype/${unit%;*}" # extract name from list entry
+      unit="${unit%;*}"        # extract name from list entry
 
-      [ "$utype" = 'module' ] && unit="$unit/$XSH_RUNCOM_PREFIX$_XSH_RUNCOM"
-      _xsh_load_unit "$unit"
+      _xsh_load_unit "module/$unit/$XSH_RUNCOM_PREFIX$_XSH_RUNCOM"
     esac
   done
   return 0
 }
 
-# Mark a manager or module runcom for loading in the current shell.
+# Mark a unit for loading in the current shell.
 # The unit argument is the shell-agnostic path to the unit to load:
 # it must be relative to the shell directory and without extension.
 #
@@ -563,8 +502,8 @@ _xsh_bootstrap_init_file() {
 #
 # This file is sourced automatically by xsh if the current shell $desc.
 #
-# It should merely register the manager(s) and modules to be loaded by
-# each runcom (env, login, interactive, logout).
+# It should merely register the modules to be loaded for each runcom:
+# env, login, interactive and logout.
 # The order in which the modules are registered defines the order in which
 # they will be loaded. Try \`xsh help\` for more information.
 #
