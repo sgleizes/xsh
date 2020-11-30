@@ -257,6 +257,15 @@ Note that this is not exactly equivalent to your original setup, as the subtle
 differences between the original runcoms are now abstracted away. This is only
 meant as a quick way to start.
 
+If you use one of the popular
+[zsh frameworks and plugin managers](https://gist.github.com/laggardkernel/4a4c4986ccdcaf47b91e8227f9868ded),
+they can certainly be integrated in xsh.
+Examples of such integration modules can be found here:
+
+- [prezto](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/prezto)
+- [oh-my-zsh](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/oh-my-zsh)
+- [zinit](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/zinit)
+
 ### Start a new xsh-powered shell
 
 You can check that xsh is working properly by invoking your favorite shell with
