@@ -26,7 +26,7 @@ A simple framework for shell configuration management.
 - [Installation](#installation)
   - [Clone the repository](#clone-the-repository)
   - [Bootstrap the desired shell(s)](#bootstrap-the-desired-shells)
-  - [Migrating you existing configuration](#migrating-you-existing-configuration)
+  - [Migrating your existing configuration](#migrating-your-existing-configuration)
   - [Start a new xsh-powered shell](#start-a-new-xsh-powered-shell)
 - [Usage](#usage)
   - [Initialization file](#initialization-file)
@@ -228,7 +228,7 @@ created.
 The bootstrap command also creates a default initialization file and a `core`
 module for the target shell(s).
 
-### Migrating you existing configuration
+### Migrating your existing configuration
 
 Your existing configuration should have been automatically backed-up during the
 bootstrap operation. For simple cases it can be quickly migrated into the
