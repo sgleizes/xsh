@@ -27,7 +27,7 @@
 #
 
 # shellcheck shell=sh disable=SC1090 disable=SC1007
-XSH_VERSION='0.1.0'
+XSH_VERSION='0.2.0'
 
 # Figure out the name of the current shell.
 XSHELL="${ZSH_NAME:-${0##*/}}"
