@@ -198,7 +198,7 @@ variable. This must also be set before your user's login shell is started.
 First, xsh must be made available in the current shell:
 
 ```sh
-source "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh"
+. "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh"
 ```
 
 Note that sourcing the script at this point will warn you that the
