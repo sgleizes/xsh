@@ -253,18 +253,15 @@ mv "${ZDOTDIR:-$HOME}/.zshrc.~1~"   "$XSH_CONFIG_DIR/zsh/core/@interactive.zsh"
 mv "${ZDOTDIR:-$HOME}/.zlogout.~1~" "$XSH_CONFIG_DIR/zsh/core/@logout.zsh"
 ```
 
-Note that this is not exactly equivalent to your original setup, as the subtle
-differences between the original runcoms are now abstracted away. This is only
-meant as a quick way to start.
+Note that this might not be exactly equivalent to your original setup, as the
+subtle differences between the original runcoms are now abstracted away. This is
+only meant as a quick way to start.
 
 If you use one of the popular
 [zsh frameworks and plugin managers](https://gist.github.com/laggardkernel/4a4c4986ccdcaf47b91e8227f9868ded),
-they can certainly be integrated in xsh.
-Examples of such integration modules can be found here:
-
-- [prezto](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/prezto)
-- [oh-my-zsh](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/oh-my-zsh)
-- [zinit](https://github.com/sgleizes/dotfiles/tree/master/.config/shell/zsh/zinit)
+they can certainly be integrated in xsh. Some demonstration modules are
+available in the [xsh-modules](https://github.com/sgleizes/xsh-modules)
+repository to quickly integrate with `oh-my-zsh`, `prezto`, `zinit`...
 
 ### Start a new xsh-powered shell
 
@@ -557,7 +554,10 @@ directory. Use `git checkout <tag>` to use a specific version.
 
 ## Repositories using xsh
 
-My dotfiles repository includes an
+The [xsh-modules](https://github.com/sgleizes/xsh-modules) repository provides
+examples of integration with the most popular plugin managers.
+
+My personal dotfiles repository also includes an
 [extensive xsh-powered configuration](https://github.com/sgleizes/dotfiles/tree/master/.config/shell)
 that could help illustrating the benefits of a modular configuration.
 
