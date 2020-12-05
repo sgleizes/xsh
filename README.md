@@ -457,8 +457,9 @@ and modules though.
 
 It can be troublesome at first to figure out in which runcom a particular piece
 of configuration should reside.
-[This section of the Zsh FAQ](http://zsh.sourceforge.net/FAQ/zshfaq03.html#l19)
-is a good place to start.
+[The Zsh documentation](http://zsh.sourceforge.net/Intro/intro_3.html)
+is a good place to start, along with
+[this section of the Zsh FAQ](http://zsh.sourceforge.net/FAQ/zshfaq03.html#l19).
 
 - The `env` runcom should be kept as minimal as possible, as it defines the
   environment for non-login, non-interactive shells. It directly affects the
