@@ -4,8 +4,8 @@
 #
 
 # Source xsh or error out explicitly.
-source "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh" ||
-  return 1
+source "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh" \
+  || return 1
 
 xsh runcom env
 xsh runcom interactive

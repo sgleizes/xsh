@@ -22,11 +22,11 @@ fi
 # To detect if this shell is a login shell we check for the prefix '-' in the
 # program name. This fails to detect shell-specific ways of invoking a login
 # shell (e.g. using `-l`), so a bash-specific check is also included.
-if [ "$0" = "${0#-}" ] ||
-  { command -v shopt >/dev/null && ! shopt -q login_shell; }; then
+if [ "$0" = "${0#-}" ] \
+  || { command -v shopt >/dev/null && ! shopt -q login_shell; }; then
   # Source xsh or error out explicitly.
-  . "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh" ||
-    return 1
+  . "${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}/xsh.sh" \
+    || return 1
 
   xsh runcom env
 fi
