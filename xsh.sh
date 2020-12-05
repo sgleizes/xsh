@@ -556,6 +556,7 @@ _xsh_log() {
 #   message  The error message to print.
 #   command  The optional command hint. If '-' no tip is printed.
 _xsh_error() {
+  local msg="$1"
   local cmd="${2-$_XSH_COMMAND}"
   local hint=1
 
@@ -564,7 +565,7 @@ _xsh_error() {
     cmd="$_XSH_COMMAND"
   fi
 
-  echo "xsh: ${cmd:+$cmd: }$1"
+  echo "xsh: ${cmd:+$cmd: }$msg"
   [ "$hint" ] && \
     echo "xsh: try 'xsh help${cmd:+ $cmd}' for more information"
   return 1
