@@ -197,7 +197,7 @@ _xsh_bootstrap() {
     # Link shell runcoms to the user's home directory.
     _xsh_log "[$sh] linking shell runcoms"
     for rc in "$XSH_DIR/runcom/$rcsh"/*; do
-      if [ $rc = "$XSH_DIR/runcom/$rcsh/*" ]; then
+      if [ "$rc" = "$XSH_DIR/runcom/$rcsh/*" ]; then
         _xsh_error "no runcoms found for shell '$rcsh'" -
         continue 2
       fi
