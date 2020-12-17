@@ -32,7 +32,8 @@ A simple framework for shell configuration management.
   - [Uninstall](#uninstall)
 - [Usage](#usage)
   - [Initialization file](#initialization-file)
-  - [Module runcoms](#module-runcoms)
+  - [Creating module runcoms](#creating-module-runcoms)
+  - [Loading module runcoms](#loading-module-runcoms)
   - [Debugging & Benchmarking](#debugging--benchmarking)
   - [Tips & Tricks](#tips--tricks)
   - [Known limitations](#known-limitations)
@@ -75,6 +76,7 @@ This project might be of interest to you if:
   `interactive` and `logout` runcoms for any supported shell.
 - Reusability of POSIX modules for other shells.
 - Quickly bootstrap a configuration for a supported shell with `xsh bootstrap`.
+- Quickly create new module runcoms with `xsh create`.
 - Register modules from shell initialization files with `xsh module`.
 - Load dependent modules from other modules with `xsh load`.
 - List registered modules for the current shell with `xsh list`.
@@ -357,14 +359,12 @@ at which point two things happen:
 ### Initialization file
 
 Each type of shell must have a dedicated xsh initialization file located at
-`<shell>/init.<ext>`
+`<shell>/init.<ext>`. This file is automatically created by `xsh bootstrap`.
 
-This file should merely register the modules to be loaded for each runcom:
-`env`, `login`, `interactive` and `logout`.
+Its role is to register the modules to be loaded for each runcom: `env`,
+`login`, `interactive` and `logout`.
 The order in which the modules are registered defines the order in which
 they will be loaded.
-
-#### Loading modules
 
 Modules can be registered using the `xsh module` command. Note that registering
 a module doesn't directly execute that module's runcoms.
@@ -427,7 +427,28 @@ performing unnecessary file lookup every time a shell starts up.
 
 See also `xsh help` and `xsh help module`.
 
-### Module runcoms
+### Creating module runcoms
+
+A default `core` module with an `interactive` runcom file is automatically
+created by `xsh bootstrap`. You can quickly create new module runcoms using the
+`xsh create` command.
+
+This command works similarly to the `xsh module` command:
+
+```sh
+xsh create ssh login:interactive
+```
+
+This will create a new `ssh` module for the current shell, containing two runcom
+files `@login.<ext>` and `@interactive.<ext>`. You can also use this command to
+add a runcom to an existing module.
+
+Note that the potentially new module needs to be registered in the
+initialization file for it to be automatically loaded.
+
+See also `xsh help` and `xsh help create`.
+
+### Loading module runcoms
 
 The module contents and organization is entirely up to you. During this design
 process, you might find a need to express dependencies between modules, or to

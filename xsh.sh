@@ -46,6 +46,7 @@ XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
 # Usage: xsh [options...] <command> [args...]
 # Commands:
 #   bootstrap                      Bootstrap xsh for the current or specified shells.
+#   create                         Create new module runcoms.
 #   help [command]                 Display help information.
 #   init                           Source the xsh init file for the current shell.
 #   list                           List registered modules.
@@ -155,7 +156,7 @@ _xsh_run() {
   fi
 
   case "$_XSH_COMMAND" in
-    bootstrap|help|init|list|load|module|runcom) eval "_xsh_$_XSH_COMMAND $args" ;;
+    bootstrap|create|help|init|list|load|module|runcom) eval "_xsh_$_XSH_COMMAND $args" ;;
     *) _xsh_error "invalid command '$_XSH_COMMAND'" '' ;;
   esac
 }
@@ -213,6 +214,42 @@ _xsh_bootstrap() {
     _xsh_bootstrap_module "$sh" || err=1
   done
   return $err
+}
+
+# Create new module runcoms for the current or specified shells.
+# Valid values for the runcoms argument are: env, login, interactive, logout.
+# Multiple values can be specified separated by colons (e.g. env:login).
+# By default the module is registered for the interactive runcom.
+#
+# Usage: xsh create <module> [runcoms]
+# Arguments:
+#   module   The name of the module to create.
+#   runcoms  A colon-separated list of runcoms to create for the module.
+# Globals:
+#   XSH_SHELLS  Used as the list of shells for which to create the modules.
+_xsh_create() {
+  local mod="$1"
+  local rcs="$2"
+  [ ! "$rcs" ] && rcs='interactive'
+
+  if [ ! "$mod" ]; then
+    _xsh_error "missing required name"
+    return 1
+  fi
+
+  # Assign the shells as positional parameters.
+  # shellcheck disable=SC2086
+  {
+    IFS=:
+    set -o noglob
+    set -- $XSH_SHELLS
+    set +o noglob
+    unset IFS
+  }
+
+  for sh in "$@"; do
+    _xsh_create_module "$sh" "$mod" "$rcs"
+  done
 }
 
 # Display help information for xsh or a given command.
@@ -532,12 +569,70 @@ _xsh_bootstrap_module() {
     command mkdir "${rc%/*}"
     command cat >"$rc" <<EOF
 #
-# Core configuration module.
+# $(_xsh_module_header "$sh" "core")
 #
 
 alias reload='exec "\$XSHELL"' # reload the current shell configuration
 EOF
   fi
+}
+
+# Create module runcoms for the given shell.
+#
+# Usage: _xsh_create_module <shell> <module> <runcoms>
+# Arguments:
+#   shell    The target shell for the module to create.
+#   module   The name of the module to create.
+#   runcoms  The module runcoms to create.
+_xsh_create_module() {
+  local sh="$1"
+  local mod="$2"
+  local rcs="$3"
+  local ext= rc= rcf=
+  [ "$sh" = 'posix' ] && ext='sh' || ext="$sh"
+
+  # Assign the runcoms as positional parameters.
+  # shellcheck disable=SC2086
+  {
+    IFS=:
+    set -o noglob
+    set -- $rcs
+    set +o noglob
+    unset IFS
+  }
+
+  # Create module directory if it does not exist.
+  command mkdir -p "$XSH_CONFIG_DIR/$sh/$mod" || return 1
+
+  for rc in "$@"; do
+    rcf="$XSH_CONFIG_DIR/$sh/$mod/${XSH_RUNCOM_PREFIX}$rc.$ext"
+
+    if [ "$rc" ] && [ ! -f "$rcf" ]; then
+      _xsh_log "[$sh] creating module runcom: ${rcf#$XSH_CONFIG_DIR/}"
+      command cat >"$rcf" <<EOF
+#
+# $(_xsh_module_header "$sh" "$mod")
+#
+EOF
+    fi
+  done
+}
+
+# Print the header line to include in generated module runcoms.
+#
+# Usage: _xsh_module_header <shell> <module>
+# Arguments:
+#   shell   The shell of the module.
+#   module  The name of the module.
+_xsh_module_header() {
+  local sh="$1"
+  local mod="$2"
+  local sh_desc=
+  [ "$sh" != 'posix' ] && sh_desc=" for $sh"
+
+  printf '%s' "$mod" | head -c 1 | tr '[:lower:]' '[:upper:]'
+  printf '%s' "$mod" | tail -c '+2' | tr '-' ' '
+  printf ' configuration module%s.' "$sh_desc"
 }
 
 # Print a log message with a prefix corresponding to the xsh nesting level.
