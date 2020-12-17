@@ -4,7 +4,7 @@
 
 A simple framework for shell configuration management.
 
-[Concept](#design--concepts) • [Installation](#installation) • [Usage](#usage)
+[Features](#features) • [Concepts](#design--concepts) • [Installation](#installation) • [Usage](#usage)
 
 ![Xsh directory structure](https://raw.githubusercontent.com/sgleizes/xsh/assets/screenshot.png)
 
