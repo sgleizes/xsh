@@ -26,7 +26,7 @@
 #   distinct variables the form `local var=` is used to preserve compatibility with these shells.
 #
 
-# shellcheck shell=sh disable=SC1090 disable=SC1007
+# shellcheck shell=sh disable=SC1090 disable=SC1007 disable=SC3043
 XSH_VERSION='0.3.0'
 
 # Figure out the name of the current shell.
@@ -93,6 +93,7 @@ xsh() {
 
   # Begin runcom benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
+    # shellcheck disable=SC3044
     [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(date '+%s%3N')
   fi
 
@@ -103,6 +104,7 @@ xsh() {
 
   # End runcom benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
+    # shellcheck disable=SC3028
     [ "$ZSH_NAME" ] \
       && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
       || _elapsed=$(( $(date +%s%3N) - _begin ))
@@ -482,6 +484,7 @@ _xsh_source_unit() {
 
   # Begin unit benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$XSH_VERBOSE" ]; then
+    # shellcheck disable=SC3044
     [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(date '+%s%3N')
   fi
 
@@ -503,6 +506,7 @@ _xsh_source_unit() {
 
     # End unit benchmark.
     if [ "$XSH_BENCHMARK" ]; then
+      # shellcheck disable=SC3028
       [ "$ZSH_NAME" ] \
         && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
         || _elapsed=$(( $(date +%s%3N) - _begin ))
