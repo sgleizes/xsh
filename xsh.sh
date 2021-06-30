@@ -46,7 +46,7 @@ XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
 # Usage: xsh [options...] <command> [args...]
 # Commands:
 #   bootstrap                      Bootstrap xsh for the current or specified shells.
-#   create                         Create new module runcoms.
+#   create <module> [runcoms]      Create new module runcoms.
 #   help [command]                 Display help information.
 #   init                           Source the xsh init file for the current shell.
 #   list                           List registered modules.
