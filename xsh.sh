@@ -42,20 +42,12 @@ XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-$XSH_DIR}"
 XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
 
 # Command wrappers for cross platform compatibility.
-date_cmd() {
+_timestamp() {
   __uname_result="$(uname -s)"
   case "${__uname_result}" in
-    Linux*)     date "$@" ;;
-    Darwin*)    gdate "$@" ;;
-    *)          date "$@"
-  esac
-}
-ln_cmd() {
-  __uname_result="$(uname -s)"
-  case "${__uname_result}" in
-    Linux*)     command ln "$@" ;;
-    Darwin*)    command gln "$@" ;;
-    *)          command ln "$@"
+    Linux*)     date '+%s%3N' ;;
+    Darwin*)    sqlite3 ':memory:' 'SELECT printf("%i", ((julianday("now") - 2440587.5)*86400 * 1000))' ;;
+    *)          date '+%s%3N'
   esac
 }
 
@@ -111,8 +103,7 @@ xsh() {
 
   # Begin runcom benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
-    # shellcheck disable=SC3044
-    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(date '+%s%3N')
+    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(_timestamp)
   fi
 
   # Source all units marked for loading during xsh execution.
@@ -125,7 +116,7 @@ xsh() {
     # shellcheck disable=SC3028
     [ "$ZSH_NAME" ] \
       && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
-      || _elapsed=$(( $(date_cmd +%s%3N) - _begin ))
+      || _elapsed=$(( $(_timestamp) - _begin ))
     _xsh_log "$_XSH_RUNCOM runcom [${_elapsed}ms]"
   fi
 
@@ -224,8 +215,25 @@ _xsh_bootstrap() {
       fi
 
       [ "$sh" = 'zsh' ] && rcpath="${ZDOTDIR:-$HOME}" || rcpath="$HOME"
-      if [ "$(readlink "$rcpath/.${rc##*/}")" != "$rc" ]; then
-        ln_cmd -vs --backup=numbered "$rc" "$rcpath/.${rc##*/}" || err=1
+      __target_filename="$rcpath/.${rc##*/}"
+      if [ "$(readlink "$__target_filename")" != "$rc" ]; then
+        __uname_result="$(uname -s)"
+        case "${__uname_result}" in
+          Linux*)
+            command ln -s -v --backup=numbered "$rc" "$__target_filename" || err=1 
+            ;;
+          Darwin*)
+            if [ -f __target_filename ]; then
+              # Move/Rename rather than overwrite. Using an ISO datestamp as the suffix to avoid a hand writen automatic number suffix autoincrementer loop. 
+              command mv "$__target_filename" "${__target_filename}.$(date +'%Y-%m-%dT%H:%M:%S%z')" && command ln -s -v "$rc" "$__target_filename" || err=1 
+            else
+              command ln -s -v "$rc" "$__target_filename" || err=1 
+            fi
+            ;;
+          *)          
+            command ln -s -v --backup=numbered "$rc" "$__target_filename" || err=1 
+        esac
+        
       fi
     done
 
