@@ -207,7 +207,7 @@ _xsh_bootstrap() {
 
       [ "$sh" = 'zsh' ] && rcpath="${ZDOTDIR:-$HOME}" || rcpath="$HOME"
       if [ "$(readlink "$rcpath/.${rc##*/}")" != "$rc" ]; then
-        command ln -vs --backup=numbered "$rc" "$rcpath/.${rc##*/}" || err=1
+        _xsh_link "$rc" "$rcpath/.${rc##*/}" || err=1
       fi
     done
 
@@ -637,6 +637,19 @@ _xsh_module_header() {
   printf '%s' "$mod" | head -c 1 | tr '[:lower:]' '[:upper:]'
   printf '%s' "$mod" | tail -c '+2' | tr '-' ' '
   printf ' configuration module%s.' "$sh_desc"
+}
+
+# Create a symbolic link, backing up the destination file if it already exists.
+#
+# Usage: _xsh_link <target> <dest>
+# Arguments:
+#   target  The link target.
+#   dest    The link destination.
+_xsh_link() {
+  local ln='ln'
+  command -v gln >/dev/null && ln='gln'
+
+  command "$ln" -vs --backup=numbered "$@"
 }
 
 # Print the current time in milliseconds.
