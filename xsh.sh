@@ -94,7 +94,7 @@ xsh() {
   # Begin runcom benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$_XSH_COMMAND" = 'runcom' ]; then
     # shellcheck disable=SC3044
-    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(date '+%s%3N')
+    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(_xsh_time)
   fi
 
   # Source all units marked for loading during xsh execution.
@@ -107,7 +107,7 @@ xsh() {
     # shellcheck disable=SC3028
     [ "$ZSH_NAME" ] \
       && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
-      || _elapsed=$(( $(date +%s%3N) - _begin ))
+      || _elapsed=$(( $(_xsh_time) - _begin ))
     _xsh_log "$_XSH_RUNCOM runcom [${_elapsed}ms]"
   fi
 
@@ -485,7 +485,7 @@ _xsh_source_unit() {
   # Begin unit benchmark.
   if [ "$XSH_BENCHMARK" ] && [ "$XSH_VERBOSE" ]; then
     # shellcheck disable=SC3044
-    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(date '+%s%3N')
+    [ "$ZSH_NAME" ] && typeset -F SECONDS=0 || _begin=$(_xsh_time)
   fi
 
   # Source the unit or select the appropriate emulation mode for zsh.
@@ -509,7 +509,7 @@ _xsh_source_unit() {
       # shellcheck disable=SC3028
       [ "$ZSH_NAME" ] \
         && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
-        || _elapsed=$(( $(date +%s%3N) - _begin ))
+        || _elapsed=$(( $(_xsh_time) - _begin ))
       _xsh_log "${1#$XSH_CONFIG_DIR/} [${_elapsed}ms]$_errstatus"
     else
       _xsh_log "${1#$XSH_CONFIG_DIR/}$_errstatus"
@@ -637,6 +637,16 @@ _xsh_module_header() {
   printf '%s' "$mod" | head -c 1 | tr '[:lower:]' '[:upper:]'
   printf '%s' "$mod" | tail -c '+2' | tr '-' ' '
   printf ' configuration module%s.' "$sh_desc"
+}
+
+# Print the current time in milliseconds.
+#
+# Usage: _xsh_time
+_xsh_time() {
+  local date='date'
+  command -v gdate >/dev/null && date='gdate'
+
+  "$date" '+%s%3N'
 }
 
 # Print a log message with a prefix corresponding to the xsh nesting level.
