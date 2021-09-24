@@ -87,19 +87,22 @@ See [usage](#usage) for examples and information about xsh commands.
 ## Dependencies
 
 - GNU `coreutils`
-- GNU `sed`
+- `util-linux` (for `column`)
+- `sed`
 - A POSIX-compatible shell that is [supported](#supported-shells).
 
-I haven't tried to run xsh on macOS or any other platform using the BSD
-implementations of `coreutils` and `sed`, so this is uncharted territory.
-If anyone is willing to try that, I'll be grateful for any provided feedback.
-What is expected is that benchmarking will not work with the BSD implementation
-of `date` (except for `zsh` which uses a more efficient method).
+On most Linux systems, these programs should already be installed.
 
-On macOS at least it is possible to install the GNU versions of `coreutils` and
-`sed`, so that could be a workaround for users on this platform, although
-compatibility with both implementations would be preferred. Please open
-an issue if you find that it is not the case.
+For Unix systems using the BSD implementations of `coreutils`, so far only macOS
+is supported and requires the installation of GNU `coreutils` and `util-linux`:
+
+```sh
+brew install coreutils util-linux
+```
+
+The `coreutils` prefixed with `g` will automatically be used if available,
+however the `column` utility from `util-linux` must be reachable from your
+`PATH` for the `list` command to work.
 
 ## Supported shells
 
@@ -339,6 +342,9 @@ mv "${ZDOTDIR:-$HOME}/.zlogin.~1~"  "${ZDOTDIR:-$HOME}/.zlogin"
 mv "${ZDOTDIR:-$HOME}/.zshrc.~1~"   "${ZDOTDIR:-$HOME}/.zshrc"
 mv "${ZDOTDIR:-$HOME}/.zlogout.~1~" "${ZDOTDIR:-$HOME}/.zlogout"
 ```
+
+If the backup doesn't exist for any file above, you can safely delete the link
+created by xsh for that file.
 
 ## Usage
 
