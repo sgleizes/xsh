@@ -179,11 +179,12 @@ _xsh_bootstrap() {
   # Assign the shells as positional parameters.
   # shellcheck disable=SC2086
   {
-    IFS=:
+    local oldIFS="$IFS"
+    IFS=":"
     set -o noglob
     set -- $XSH_SHELLS
     set +o noglob
-    unset IFS
+    IFS="$oldIFS"
   }
 
   for sh in "$@"; do
@@ -242,11 +243,12 @@ _xsh_create() {
   # Assign the shells as positional parameters.
   # shellcheck disable=SC2086
   {
-    IFS=:
+    local oldIFS="$IFS"
+    IFS=":"
     set -o noglob
     set -- $XSH_SHELLS
     set +o noglob
-    unset IFS
+    IFS="$oldIFS"
   }
 
   for sh in "$@"; do
@@ -447,11 +449,12 @@ _xsh_load_unit() {
   # Assign the shells as positional parameters.
   # shellcheck disable=SC2086
   {
-    IFS=:
+    local oldIFS="$IFS"
+    IFS=":"
     set -o noglob
     set -- $XSH_SHELLS
     set +o noglob
-    unset IFS
+    IFS="$oldIFS"
   }
 
   for sh in "$@"; do
@@ -598,11 +601,12 @@ _xsh_create_module() {
   # Assign the runcoms as positional parameters.
   # shellcheck disable=SC2086
   {
-    IFS=:
+    local oldIFS="$IFS"
+    IFS=":"
     set -o noglob
     set -- $rcs
     set +o noglob
-    unset IFS
+    IFS="$oldIFS"
   }
 
   # Create module directory if it does not exist.
