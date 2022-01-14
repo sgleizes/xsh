@@ -77,13 +77,17 @@ xsh() {
   # with '_' to avoid potential conflicts.
   local _XSH_COMMAND=
   local _XSH_LOAD_UNITS=
-  local _err=0 _begin= _elapsed=
+  local _err=0 _oldifs= _begin= _elapsed=
 
   # Replace 'sh' by 'posix' if it is the current shell.
   # This is not done post option processing since AFAIK it would require
   # to use both sed and command substitution, which would have a significant
   # performance impact. User-supplied values must use 'posix' instead of 'sh'.
   [ "$XSH_SHELLS" = 'sh' ] && XSH_SHELLS='posix'
+
+  # Save IFS value and prevent it from propagating to sourced units.
+  _oldifs="$IFS"; ${IFS+':'} unset _oldifs
+  unset IFS
 
   # Enter the "real" posix zone.
   # In the scope of the current function, zsh emulation is not active so
@@ -110,6 +114,9 @@ xsh() {
       || _elapsed=$(( $(_xsh_time) - _begin ))
     _xsh_log "$_XSH_RUNCOM runcom [${_elapsed}ms]"
   fi
+
+  # Restore original IFS value.
+  IFS="$_oldifs"; ${_oldifs+':'} unset IFS
 
   # Set the root _XSH_LEVEL after the init unit has been sourced to log it at runcom level.
   [ "$_XSH_COMMAND" = 'init' ] && _XSH_LEVEL='+'
