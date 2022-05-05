@@ -94,15 +94,13 @@ See [usage](#usage) for examples and information about xsh commands.
 On most Linux systems, these programs should already be installed.
 
 For Unix systems using the BSD implementations of `coreutils`, so far only macOS
-is supported and requires the installation of GNU `coreutils` and `util-linux`:
+is supported and requires the installation of GNU `coreutils`:
 
 ```sh
-brew install coreutils util-linux
+brew install coreutils
 ```
 
-The `coreutils` prefixed with `g` will automatically be used if available,
-however the `column` utility from `util-linux` must be reachable from your
-`PATH` for the `list` command to work.
+The `coreutils` prefixed with `g` will automatically be used if available.
 
 ## Supported shells
 
@@ -624,7 +622,7 @@ is a shame when it comes to benchmarking...
 Unfortunately, the invocation of bash runcoms is dependent on patches added
 by OS distributors and compile-time options. The implementation for the runcoms
 of each shell has not been tested on a variety of OS distributions so far, so
-please open an issue if you find that xsh if not behaving like it should on your
+please open an issue if you find that xsh is not behaving like it should on your
 distribution.
 
 ## Updating

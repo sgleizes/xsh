@@ -324,7 +324,7 @@ _xsh_init() {
 #
 # Usage: xsh list
 _xsh_list() {
-  echo "$_XSH_MODULES" | tr ' ' '\n' | column -s ';' -t -N MODULE,SHELLS,RUNCOMS
+  echo "MODULE;SHELLS;RUNCOMS ${_XSH_MODULES}" | tr ' ' '\n' | column -s ';' -t
   return 0
 }
 
