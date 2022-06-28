@@ -309,11 +309,11 @@ _xsh_init() {
   _XSH_RUNCOM=''
   _XSH_LEVEL=''
 
-  _xsh_load_unit 'init' || {
+  _xsh_load_units 'init' || {
     # Override XSH_SHELLS in the outer scope so that 'posix' is used as the default shell
     # even in the context of the init file.
     [ "$XSHELL" != 'sh' ] && [ "$XSH_SHELLS" = "$XSHELL" ] \
-      && XSH_SHELLS='posix' && _xsh_load_unit 'init'
+      && XSH_SHELLS='posix' && _xsh_load_units 'init'
   } || {
     _xsh_error "no configuration found for '$sh'" -
     return 1
@@ -335,7 +335,7 @@ _xsh_list() {
 # Usage: xsh load <module> [runcom]
 # Arguments:
 #   module  The name of the module to load.
-#   runcom  The runcom file of the module to load.
+#   runcom  The runcom to load for the given module.
 # Globals:
 #   XSH_CONFIG_DIR     Used as the base directory to find the module.
 #   XSH_RUNCOM_PREFIX  Used as the prefix for module runcom files.
@@ -349,7 +349,7 @@ _xsh_load() {
     return 1
   fi
 
-  _xsh_load_unit "$mod/$XSH_RUNCOM_PREFIX$rc" || {
+  _xsh_load_units "$XSH_RUNCOM_PREFIX$rc" "$mod" || {
     _xsh_error "failed to load runcom '$rc' of module '$mod' for '$XSH_SHELLS'"
     return 1
   }
@@ -413,7 +413,7 @@ _xsh_runcom() {
 #   XSH_CONFIG_DIR     Used as the base directory to find units.
 #   XSH_RUNCOM_PREFIX  Used as the prefix for module runcom files.
 _xsh_load_registered() {
-  local unit= rcs=
+  local mod= rcs=
 
   # Assign the units as positional parameters.
   # shellcheck disable=SC2086
@@ -424,32 +424,33 @@ _xsh_load_registered() {
   }
 
   # Load units that are registered for the current runcom.
-  for unit in "$@"; do
-    rcs="${unit##*;}"
+  for mod in "$@"; do
+    rcs="${mod##*;}"
     case $rcs in (*"$_XSH_RUNCOM"*)
-      unit="${unit%;*}"        # remove runcoms from list entry
-      XSH_SHELLS="${unit#*;}"  # extract shells from list entry
-      unit="${unit%;*}"        # extract name from list entry
+      mod="${mod%;*}"         # remove runcoms from list entry
+      XSH_SHELLS="${mod#*;}"  # extract shells from list entry
+      mod="${mod%;*}"         # extract name from list entry
 
-      _xsh_load_unit "$unit/$XSH_RUNCOM_PREFIX$_XSH_RUNCOM"
+      _xsh_load_units "$XSH_RUNCOM_PREFIX$_XSH_RUNCOM" "$mod"
     esac
   done
   return 0
 }
 
-# Mark a unit for loading in the current shell.
-# The unit argument is the shell-agnostic path to the unit to load:
-# it must be relative to the shell directory and without extension.
+# Find and mark units for loading in the current shell.
+# Arguments are shell-agnostic so that units can be searched in multiple shells.
 #
-# Usage: _xsh_load_unit <unit>
+# Usage: _xsh_load_units <name> <path>
 # Arguments:
-#   unit  The shell-agnostic path to the unit to load.
+#   name  The filename suffix of the unit(s) to load, without extension.
+#   path  The optional path to the unit(s) to load, relative to shell directories.
 # Globals:
-#   XSH_CONFIG_DIR  Used as the base directory to find the unit.
-#   XSH_SHELLS      Used as the list of shell candidates to lookup for the unit.
-_xsh_load_unit() {
-  local unit="$1"
-  local sh= ext= unitpath=
+#   XSH_CONFIG_DIR  Used as the base directory to find units.
+#   XSH_SHELLS      Used as the list of shell candidates to lookup for units.
+_xsh_load_units() {
+  local name="$1"
+  local path="${2+${2%/}/}"  # ensure path ends with a /, if specified
+  local sh= ext= unit=
 
   # Assign the shells as positional parameters.
   # shellcheck disable=SC2086
@@ -463,12 +464,18 @@ _xsh_load_unit() {
 
   for sh in "$@"; do
     [ "$sh" = 'posix' ] && ext='sh' || ext="$sh"
-    unitpath="$XSH_CONFIG_DIR/$sh/$unit.$ext"
-    if [ ! -r "$unitpath" ]; then
-      continue
-    fi
 
-    _XSH_LOAD_UNITS="${_XSH_LOAD_UNITS:+$_XSH_LOAD_UNITS; }_xsh_source_unit '$unitpath'"
+    # All matched units are sorted according to the collating sequence in effect
+    # in the current locale (LC_COLLATE) and loaded in that deterministic order.
+    for unit in "$XSH_CONFIG_DIR/$sh/$path"*"$name.$ext"; do
+      # No distinction is made between a failed glob and a non-readable file.
+      # Both cases abort the search for the current shell.
+      if [ ! -r "$unit" ]; then
+        continue 2
+      fi
+
+      _XSH_LOAD_UNITS="${_XSH_LOAD_UNITS:+$_XSH_LOAD_UNITS; }_xsh_source_unit '$unit'"
+    done
     return 0
   done
   return 1
