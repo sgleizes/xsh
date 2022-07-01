@@ -126,8 +126,7 @@ and **runcoms**.
 
 Shells are the first class citizens of xsh. Configuration for specific shells
 resides in a directory under `$XSH_CONFIG_DIR` matching that shell's name.
-The default value of `XSH_CONFIG_DIR` is `$XSH_DIR`, which must point to the
-location of the xsh repository. The default location is `~/.config/xsh`.
+The default value of `XSH_CONFIG_DIR` is `~/.config/shell`.
 This document uses `<shell>` to refer to shell directories.
 
 Each shell directory must contain an initialization file named `init.<ext>`.
@@ -236,14 +235,15 @@ for that shell.
 git clone https://github.com/sgleizes/xsh ~/.config/xsh
 ```
 
-The default location of the `xsh` directory is
+The default location of the `xsh` repository is
 `${XDG_CONFIG_HOME:-$HOME/.config}/xsh`. If you wish to use a different location,
 the `XSH_DIR` environment variable must be set to that location before your
 user's login shell is started, for instance in `~/.pam_environment`.
 
-Also if you want to store your shell configuration at a different location than
-in the xsh repository (the default), you can set the `XSH_CONFIG_DIR` environment
-variable. This must also be set before your user's login shell is started.
+The default location of your shell configuration is
+`${XDG_CONFIG_HOME:-$HOME/.config}/shell`. If you want to store it at a
+different location, you can set the `XSH_CONFIG_DIR` environment variable. This
+must also be set before your user's login shell is started.
 
 ### Bootstrap the desired shell(s)
 
@@ -287,7 +287,7 @@ bootstrap operation. For simple cases it can be quickly migrated into the
 default module by using commands from the following snippet:
 
 ```sh
-XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}}"
+XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/shell}"
 
 # For POSIX shells
 cp "$HOME/.profile.~1~" "$XSH_CONFIG_DIR/posix/core/@login.sh"
@@ -591,18 +591,22 @@ for little benefit.
 
 #### Using a different directory for user configuration
 
-If you use `git` to version your shell configuration, keeping it inside the xsh
-repository would be problematic. Or maybe you just want a separation of
-concerns.
-
 You can specify the location of your shell configuration using the
 `XSH_CONFIG_DIR` environment variable. Note that this must be set before your
 user's login shell is started (e.g. in `~/.pam_environment`).
 
-Setting it to `$HOME/.config` or `$HOME/.config/shell` will result in a
+If you prefer to have it all in one place, you can store shell configuration in
+the same directory than the xsh repository (in fact this used to be the
+default).
+
+However, if you use `git` to version your shell configuration, keeping it inside
+the xsh repository would be problematic.
+
+Setting it to `$HOME/.config` or `$HOME/.config/shell` (the default) will result
+in a
 [XDG-compliant](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
-configuration structure, with the configuration for each shell residing in
-`~/.config/<shell>` or `~/.config/shell/<shell>`.
+structure, with the configuration for each shell residing in `~/.config/<shell>`
+or `~/.config/shell/<shell>`.
 
 #### Using custom runcom types for additional configuration layers
 

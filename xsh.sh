@@ -38,7 +38,7 @@ XSHELL="${XSHELL#-}" # remove leading '-' for login shells
 # global value, if any. This would prevent processes started from xsh units to
 # properly inherit the global value.
 XSH_DIR="${XSH_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xsh}"
-XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-$XSH_DIR}"
+XSH_CONFIG_DIR="${XSH_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/shell}"
 XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
 
 # A simple framework for shell configuration management.
@@ -61,7 +61,7 @@ XSH_RUNCOM_PREFIX="${XSH_RUNCOM_PREFIX:-@}"
 #   -v, --verbose          Set XSH_VERBOSE, see below.
 # Globals:
 #   XSH_DIR            Base xsh repository directory (default: ~/.config/xsh).
-#   XSH_CONFIG_DIR     Base xsh configuration directory (default: $XSH_DIR).
+#   XSH_CONFIG_DIR     Base xsh configuration directory (default: ~/.config/shell).
 #   XSH_RUNCOM_PREFIX  Prefix for module runcom files (default: @).
 #   XSH_SHELLS         Colon-separated list of shell candidates to lookup for units.
 #   XSH_BENCHMARK      Enable benchmarking the loading time of runcoms and units.
