@@ -531,7 +531,7 @@ _xsh_source_unit() {
   fi
 
   _XSH_LEVEL="${_XSH_LEVEL%*+}"
-  return $err
+  return $_err
 }
 
 # Create a default init file for the given shell.
