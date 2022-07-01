@@ -604,6 +604,34 @@ Setting it to `$HOME/.config` or `$HOME/.config/shell` will result in a
 configuration structure, with the configuration for each shell residing in
 `~/.config/<shell>` or `~/.config/shell/<shell>`.
 
+#### Using custom runcom types for additional configuration layers
+
+There is no strict requirement that the runcoms be `env`, `login`, `interactive`
+and `logout`. These are simply the runcoms that are hooked to shell
+initialization, but it is possible to add other "layers" of configuration that
+are hooked to other things.
+
+For this to work as expected, the modules must be registered with the custom
+runcom **explicitly** in the init file. They can then be loaded using:
+
+```sh
+xsh runcom my-custom-runcom
+```
+
+Or, to load that runcom for a specific module only:
+
+```sh
+xsh load core my-custom-runcom
+```
+
+Imagination is the only limit here, but here are a few use cases I have thought of:
+
+- Custom configuration hooks for users of a system, provided by system administrators.
+- Specific commands or scripts related to a module, e.g.
+  `xsh load pacman install` to install CLI dependencies using `pacman`.
+- Loading plugins of a specific shell plugin manager (`xsh runcom` can be called
+  from the @interactive runcom of any module).
+
 ### Known limitations
 
 #### Argument parsing

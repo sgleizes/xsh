@@ -226,7 +226,7 @@ _xsh_bootstrap() {
 }
 
 # Create new module runcoms for the current or specified shells.
-# Valid values for the runcoms argument are: env, login, interactive, logout.
+# Typical values for the runcoms argument are: env, login, interactive, logout.
 # Multiple values can be specified separated by colons (e.g. env:login).
 # By default the module is registered for the interactive runcom.
 #
@@ -329,7 +329,7 @@ _xsh_list() {
 }
 
 # Load a runcom of a module in the current shell.
-# The runcom argument, if any, must be one of: env, login, interactive, logout.
+# The runcom argument, if any, is typically one of: env, login, interactive, logout.
 # By default the current runcom is used, or 'interactive' if that is not set.
 #
 # Usage: xsh load <module> [runcom]
@@ -356,7 +356,7 @@ _xsh_load() {
 }
 
 # Register module(s) to be loaded by the current shell.
-# Valid values for the runcoms argument are: env, login, interactive, logout.
+# Typical values for the runcoms argument are: env, login, interactive, logout.
 # Multiple values can be specified separated by colons (e.g. env:login).
 # By default or with the special value '-', the module is registered for all runcoms.
 # Multiple modules can be specified, in which case the runcom argument is required
@@ -387,7 +387,7 @@ _xsh_module() {
 }
 
 # Load the given runcom of each registered module.
-# The runcom argument, if any, must be one of: env, login, interactive, logout.
+# The runcom argument, if any, is typically one of: env, login, interactive, logout.
 # By default the current runcom is used, or 'interactive' if that is not set.
 #
 # Usage: xsh runcom [runcom]
