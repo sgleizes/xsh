@@ -527,9 +527,9 @@ _xsh_source_unit() {
       [ "$ZSH_NAME" ] \
         && _elapsed="${$(( SECONDS * 1000 ))%.*}" \
         || _elapsed=$(( $(_xsh_time) - _begin ))
-      _xsh_log "${1#$XSH_CONFIG_DIR/} [${_elapsed}ms]$_errstatus"
+      _xsh_log "${1#"$XSH_CONFIG_DIR"/} [${_elapsed}ms]$_errstatus"
     else
-      _xsh_log "${1#$XSH_CONFIG_DIR/}$_errstatus"
+      _xsh_log "${1#"$XSH_CONFIG_DIR"/}$_errstatus"
     fi
   fi
 
@@ -556,7 +556,7 @@ _xsh_bootstrap_init_file() {
   fi
 
   if [ ! -f "$init" ]; then
-    _xsh_log "[$sh] creating default init file: ${init#$XSH_CONFIG_DIR/}"
+    _xsh_log "[$sh] creating default init file: ${init#"$XSH_CONFIG_DIR"/}"
     command cat >"$init" <<EOF
 #
 # This file is sourced automatically by xsh if the current shell $desc.
@@ -586,7 +586,7 @@ _xsh_bootstrap_module() {
 
   # Check if there are existing module directories.
   if ! command ls -d "$XSH_CONFIG_DIR/$sh"/*/ >/dev/null 2>&1; then
-    _xsh_log "[$sh] creating default module runcom: ${rc#$XSH_CONFIG_DIR/}"
+    _xsh_log "[$sh] creating default module runcom: ${rc#"$XSH_CONFIG_DIR"/}"
     command mkdir "${rc%/*}"
     command cat >"$rc" <<EOF
 #
@@ -629,7 +629,7 @@ _xsh_create_module() {
     rcf="$XSH_CONFIG_DIR/$sh/$mod/${XSH_RUNCOM_PREFIX}$rc.$ext"
 
     if [ "$rc" ] && [ ! -f "$rcf" ]; then
-      _xsh_log "[$sh] creating module runcom: ${rcf#$XSH_CONFIG_DIR/}"
+      _xsh_log "[$sh] creating module runcom: ${rcf#"$XSH_CONFIG_DIR"/}"
       command cat >"$rcf" <<EOF
 #
 # $(_xsh_module_header "$sh" "$mod")
